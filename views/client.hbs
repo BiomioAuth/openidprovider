@@ -1,0 +1,25 @@
+<div class="row">
+  <h1 class="text-center">Client #{{client.id}}</h1>
+  {{#if error}}
+    <div class="text-info text-center bg-info" style="padding: 15px; margin-bottom: 25px;">
+      {{error}}
+    </div>
+  {{/if}}
+
+  <table class="table table-striped">
+      <tbody>
+        <tr>
+            <td class="col-sm-2">Name</td>
+            <td class="col-sm-10">{{client.name}}</td>
+        </tr>
+        <tr>
+            <td>Key</td>
+            <td>{{client.key}}</td>
+        </tr>
+        <tr>
+            <td>Secret</td>
+            <td>{{client.secret}}</td>
+        </tr>
+      </tbody>
+  </table>
+</div>

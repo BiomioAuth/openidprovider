@@ -1,0 +1,70 @@
+<div class="row">
+    <h1 class="text-center">Create user</h1>
+
+    {{#if error}}
+        <div class="text-info text-center bg-info" style="padding: 15px; margin-bottom: 25px;">
+          {{error}}
+        </div>
+    {{/if}}
+
+    {{#if message}}
+        <div class="text-info text-center bg-info" style="padding: 15px; margin-bottom: 25px;">
+          {{message}}
+        </div>
+    {{/if}}
+
+    <div class="text-info text-center bg-info" style="padding: 15px; margin-bottom: 25px;">
+      Please install application <a href="http://biom.io/download/">http://biom.io/download/</a> and fill this form.
+    </div>
+
+    <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
+        <div class="form-group">
+            <label for="given_name" class="col-sm-3 control-label">Given Name</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="given_name" id="given_name" placeholder="Given Name">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="middle_name" class="col-sm-3 control-label">Middle Name</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="middle_name" id="middle_name" placeholder="Middle Name">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="family_name" class="col-sm-3 control-label">Family Name</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="family_name" id="family_name" placeholder="Family Name">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="email" class="col-sm-3 control-label">Email</label>
+            <div class="col-sm-9">
+                <input type="email" class="form-control" name="email" id="email" placeholder="Email">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="password" class="col-sm-3 control-label">Password</label>
+            <div class="col-sm-9">
+                <input type="password" class="form-control" name="password" id="password" placeholder="Password">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="password" class="col-sm-3 control-label">Password</label>
+            <div class="col-sm-9">
+                <input type="password" class="form-control" name="password" id="password" placeholder="Password">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="passConfirm" class="col-sm-3 control-label">Confirm Password</label>
+            <div class="col-sm-9">
+                <input type="password" class="form-control" name="passConfirm" id="passConfirm" placeholder="Confirm Password">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-3 col-sm-9">
+                <button type="button" class="btn btn-primary">Create</button>
+            </div>
+        </div>
+    </form>
+
+</div>

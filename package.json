@@ -1,0 +1,32 @@
+{
+  "name": "openid-connect-example",
+  "version": "0.0.3",
+  "private": true,
+  "scripts": {
+    "start": "nf start",
+    "postinstall": "node node_modules/bower/bin/bower install"
+  },
+  "dependencies": {
+    "body-parser": "*",
+    "connect-redis": "*",
+    "cookie-parser": "*",
+    "errorhandler": "*",
+    "express": "~4.0",
+    "express-handlebars": "^2.0.1",
+    "express-session": "*",
+    "extend": "*",
+    "lodash": "^3.10.1",
+    "method-override": "*",
+    "morgan": "*",
+    "q": "^1.4.1",
+    "sails-redis": "git://github.com/balderdashy/sails-redis",
+    "modelling": "*",
+    "jwt-simple": "0.1.0",
+    "base64url": "*",
+    "clean-obj": "*"
+  },
+  "devDependencies": {
+    "bower": "^1.5.3",
+    "foreman": "^1.4.1"
+  }
+}

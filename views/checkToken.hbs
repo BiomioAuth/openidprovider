@@ -1,0 +1,57 @@
+<div class="row">
+    <h1 class="text-center">Check token</h1>
+
+    <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
+        <div class="form-group">
+            <div class="col-sm-10">
+                <input type="hidden" class="form-control" name="externalToken" id="externalToken">
+            </div>
+        </div>
+    </form>
+
+    <p>&nbsp;</p>
+
+    {{#if error}}<p class="text-danger text-center bg-danger" style="padding: 15px;">{{error}}</p>{{/if}}
+
+    {{#if user}}
+    <p class="text-info text-center bg-info" style="padding: 15px;">
+      Hello {{user.given_name}}  {{user.middle_name}} {{user.family_name}}
+    </p>
+    {{/if}}
+
+    {{#unless error}}
+        <p class="text-info text-center bg-info" style="padding: 15px;">
+          {{message}}
+        </p>
+    {{/unless}}
+
+    <p id="auth-success" class="text-success text-center bg-success" style="display:none; padding: 15px;">
+        Authentication is success. You will be returned back to your site.
+    </p>
+
+    <p id="auth-fail" class="text-danger text-center bg-danger" style="display:none; padding: 15px;">
+        Authentication is fail. You will be returned back to your site.
+    </p>
+
+</div>
+
+<script>
+    var auth = {{{auth}}};
+
+    $(function() {
+        setTimeout(function() {
+            if (auth) {
+                $('#auth-success').show();
+            } else {
+                $('#auth-fail').show();
+            }
+
+            setTimeout(function() {
+                document.location.replace('{{{url}}}');
+            }, 3000);
+
+        }, 3000);
+    });
+
+</script>
+

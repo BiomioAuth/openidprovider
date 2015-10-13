@@ -1,0 +1,29 @@
+<div class="row">
+  <h1 class="text-center">Client</h1>
+  {{#if error}}
+    <div class="text-info text-center bg-info" style="padding: 15px; margin-bottom: 25px;">
+      {{error}}
+    </div>
+  {{/if}}
+  
+  <table class="table table-striped">
+      <thead>
+        <tr>
+            <th class="col-sm-2">ID</th>
+            <th class="col-sm-4">Name</th>
+            <th class="col-sm-5">Key</th>
+            <th class="col-sm-1"></th>
+        </tr>
+      </thead>
+      <tbody>
+      {{#each clients}}
+        <tr>
+            <td>{{id}}</td>
+            <td>{{name}}</td>
+            <td>{{key}}</td>
+            <td><a href="/client/{{id}}" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-info-sign"></i> Info</a></td>
+        </tr>
+      {{/each}}
+      </tbody>
+  </table>
+</div>
