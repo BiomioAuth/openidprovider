@@ -230,4 +230,8 @@ ClientInterface.prototype.get_current_status = function () {
     };
 };
 
+ClientInterface.prototype.finish = function(){
+    this._state_machine._finish('Client interactions finalized.');
+};
+
 module.exports = ClientInterface;

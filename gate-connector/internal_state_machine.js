@@ -81,6 +81,7 @@ state_machine.subscribe_for_responses = function (on_behalf_of, callback) {
 };
 
 state_machine.unsubscribe_from_responses = function (on_behalf_of) {
+    logger.log('info', 'Unsubscribing client from response callbacks: ', on_behalf_of);
     delete subscribed_callbacks[on_behalf_of];
 };
 
