@@ -8,4 +8,4 @@
 
 ## Run
 
-- `nf start`
+- `npm start`
