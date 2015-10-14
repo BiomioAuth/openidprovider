@@ -1,6 +1,3 @@
-/**
- * Created by alobashchuk on 9/30/15.
- */
 var StateMachine = require("javascript-state-machine");
 
 var socket_client = require("./websocket_impl");
@@ -45,7 +42,7 @@ var onHandshake = function (event, from, to, msg) {
 var onReady = function (event, from, to, msg) {
     logger.log('info', msg);
     socket_client.start_connection_loops();
-    for(var i = 0; i < ready_callbacks.length; i++){
+    for (var i = 0; i < ready_callbacks.length; i++) {
         var ready_callback = ready_callbacks[i];
         setTimeout(ready_callback, 1);
     }
@@ -79,38 +76,38 @@ var state_machine = StateMachine.create({
     }
 });
 
-state_machine.subscribe_for_responses = function(on_behalf_of, callback){
+state_machine.subscribe_for_responses = function (on_behalf_of, callback) {
     subscribed_callbacks[on_behalf_of] = callback;
 };
 
-state_machine.unsubscribe_from_responses = function(on_behalf_of){
+state_machine.unsubscribe_from_responses = function (on_behalf_of) {
     delete subscribed_callbacks[on_behalf_of];
 };
 
-state_machine.is_ready = function(){
+state_machine.is_ready = function () {
     return state_machine.is(STATE_READY);
 };
 
-state_machine.is_disconnected = function(){
+state_machine.is_disconnected = function () {
     return state_machine.is(STATE_DISCONNECTED);
 };
 
-state_machine.add_ready_callback = function(callback){
+state_machine.add_ready_callback = function (callback) {
     ready_callbacks.push(callback);
 };
 
-state_machine.check_if_user_exists = function(client_key, temp_callback){
+state_machine.check_if_user_exists = function (client_key, temp_callback) {
     temp_keys_subscriptions[client_key] = temp_callback;
     socket_client.send_check_user_request(client_key);
 };
 
-state_machine.run_verification = function(on_behalf_of) {
+state_machine.run_verification = function (on_behalf_of) {
     socket_client.send_rpc_auth_request(on_behalf_of);
 };
 
 module.exports = state_machine;
 
-var message_listener = function(message) {
+var message_listener = function (message) {
     var parsed_message = JSON.parse(message);
     logger.log('info', 'Parsed message - ', parsed_message);
     if (parsed_message.msg.oid == 'bye') {
@@ -129,14 +126,14 @@ var message_listener = function(message) {
         } else {
             state_machine.handshake('Sending digest.');
         }
-    } else if (state_machine.is(STATE_READY)){
-        if(parsed_message.msg.oid == 'rpcResp'){
+    } else if (state_machine.is(STATE_READY)) {
+        if (parsed_message.msg.oid == 'rpcResp') {
             var response = parsed_message.msg.data;
             response.status = parsed_message.msg['rpcStatus'];
             var on_behalf_of = parsed_message.msg['onBehalfOf'];
-            if(subscribed_callbacks.hasOwnProperty(on_behalf_of)){
+            if (subscribed_callbacks.hasOwnProperty(on_behalf_of)) {
                 subscribed_callbacks[on_behalf_of](response);
-            }else if(temp_keys_subscriptions.hasOwnProperty(on_behalf_of)){
+            } else if (temp_keys_subscriptions.hasOwnProperty(on_behalf_of)) {
                 temp_keys_subscriptions[on_behalf_of](response);
                 delete temp_keys_subscriptions[on_behalf_of];
             }
@@ -144,24 +141,24 @@ var message_listener = function(message) {
     }
 };
 
-var error_callback = function(error){
+var error_callback = function (error) {
     var disc_msg = 'Socket connection closed.';
-    if(typeof error != 'undefined' && error){
+    if (typeof error != 'undefined' && error) {
         disc_msg = 'Socket error! - ' + error.toString();
     }
-    for(var subscribed_key in subscribed_callbacks){
-        if(subscribed_callbacks.hasOwnProperty(subscribed_key)){
+    for (var subscribed_key in subscribed_callbacks) {
+        if (subscribed_callbacks.hasOwnProperty(subscribed_key)) {
             subscribed_callbacks[subscribed_key]({error: disc_msg});
         }
     }
     subscribed_callbacks = {};
-    for(var temp_key in temp_keys_subscriptions){
-        if(temp_keys_subscriptions.hasOwnProperty(temp_key)){
+    for (var temp_key in temp_keys_subscriptions) {
+        if (temp_keys_subscriptions.hasOwnProperty(temp_key)) {
             temp_keys_subscriptions[temp_key]({error: disc_msg});
         }
     }
     temp_keys_subscriptions = {};
-    for(var i = 0; i < ready_callbacks.length; i++){
+    for (var i = 0; i < ready_callbacks.length; i++) {
         ready_callbacks[i]({error: disc_msg});
     }
     ready_callbacks = [];

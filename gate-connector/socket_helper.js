@@ -1,6 +1,3 @@
-/**
- * Created by alobashchuk on 10/2/15.
- */
 exports.SOCKET_URL = "wss://gate.biom.io:8090/websocket";
 
 var PROTO_VERSION = "1.0",
@@ -28,7 +25,7 @@ var PROTO_VERSION = "1.0",
     REGULAR_DIGEST_REQUEST,
     BYE_REQUEST;
 
-exports.setup_defaults = function(){
+exports.setup_defaults = function () {
     REQUEST_HEADER = {
         protoVer: PROTO_VERSION,
         seq: 0,
@@ -38,7 +35,7 @@ exports.setup_defaults = function(){
         devId: DEV_ID
     };
 
-    if(APP_ID != null && APP_ID.length){
+    if (APP_ID != null && APP_ID.length) {
         REQUEST_HEADER.appId = APP_ID;
     }
 
@@ -102,7 +99,7 @@ exports.setup_defaults = function(){
     };
 };
 
-exports.set_app_id = function(app_id){
+exports.set_app_id = function (app_id) {
     APP_ID = app_id;
     exports.setup_defaults();
 };
@@ -112,7 +109,7 @@ exports.set_app_id = function(app_id){
  * @param {string=} secret - user defined secret
  * @returns {string}
  */
-exports.get_handshake_request = function(secret){
+exports.get_handshake_request = function (secret) {
     var request = REGULAR_REQUEST;
     if (typeof secret !== 'undefined') {
         request = REGISTRATION_REQUEST;
@@ -121,7 +118,7 @@ exports.get_handshake_request = function(secret){
     return JSON.stringify(request);
 };
 
-exports.get_ack_request = function(token){
+exports.get_ack_request = function (token) {
     var request = ACK_REQUEST;
     request.header.token = token;
     return JSON.stringify(request);
@@ -133,7 +130,7 @@ exports.get_ack_request = function(token){
  * @param {string} token
  * @returns {string}
  */
-exports.get_digest_request = function(key, token) {
+exports.get_digest_request = function (key, token) {
     var request = REGULAR_DIGEST_REQUEST;
     request.msg.key = key;
     request.header.token = token;
@@ -148,12 +145,12 @@ exports.get_digest_request = function(key, token) {
  * @param {string} token
  * @returns {string}
  */
-exports.get_custom_request = function(request, token) {
+exports.get_custom_request = function (request, token) {
     request.header.token = token;
     return JSON.stringify(request);
 };
 
-exports.get_nop_request = function(token){
+exports.get_nop_request = function (token) {
     var request = NOP_REQUEST;
     request.header.token = token;
     return JSON.stringify(request);
@@ -162,7 +159,7 @@ exports.get_nop_request = function(token){
 /**
  * Increases socket requests counter.
  */
-exports.increase_request_counter = function() {
+exports.increase_request_counter = function () {
     REQUEST_HEADER.seq += 2;
 };
 
@@ -171,7 +168,7 @@ exports.increase_request_counter = function() {
  * @param {string} token
  * @returns {string}
  */
-exports.get_header_string = function(token) {
+exports.get_header_string = function (token) {
     var header = REQUEST_HEADER;
     header.token = token;
     header = '{"oid":"' + header.oid + '","seq":' + header.seq + ',"protoVer":"'
@@ -188,7 +185,7 @@ exports.get_header_string = function(token) {
  * @param {Object} keyValueDict - RPC method input values
  * @returns {string}
  */
-exports.get_rpc_request = function(token, method, onBehalfOf, keyValueDict) {
+exports.get_rpc_request = function (token, method, onBehalfOf, keyValueDict) {
     var request = RPC_REQUEST;
     request.header.token = token;
     request.msg.call = method;
@@ -207,7 +204,7 @@ exports.get_rpc_request = function(token, method, onBehalfOf, keyValueDict) {
     return JSON.stringify(request);
 };
 
-exports.get_rpc_auth_request = function(token, onBehalfOf, keyValueDict){
+exports.get_rpc_auth_request = function (token, onBehalfOf, keyValueDict) {
     var request = RPC_REQUEST;
     request.header.token = token;
     request.msg.namespace = RPC_AUTH_CLIENT_NAMESPACE;
@@ -226,7 +223,7 @@ exports.get_rpc_auth_request = function(token, onBehalfOf, keyValueDict){
     return JSON.stringify(request);
 };
 
-exports.get_rpc_check_user_exists_request = function(token, client_key, keyValueDict){
+exports.get_rpc_check_user_exists_request = function (token, client_key, keyValueDict) {
     var request = RPC_REQUEST;
     request.header.token = token;
     request.msg.namespace = RPC_AUTH_CLIENT_NAMESPACE;
@@ -236,8 +233,8 @@ exports.get_rpc_check_user_exists_request = function(token, client_key, keyValue
         keys: [],
         values: []
     };
-    for (var key in keyValueDict){
-        if(keyValueDict.hasOwnProperty(key)){
+    for (var key in keyValueDict) {
+        if (keyValueDict.hasOwnProperty(key)) {
             request.msg.data.keys.push(key);
             request.msg.data.values.push(keyValueDict[key]);
         }

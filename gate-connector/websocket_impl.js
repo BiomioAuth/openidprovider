@@ -1,6 +1,3 @@
-/**
- * Created by alobashchuk on 9/30/15.
- */
 var WebSocketClient = require('websocket').client;
 var logger = require('./logger_impl');
 var socket_helper = require('./socket_helper');
@@ -168,7 +165,7 @@ exports.send_check_user_request = function (client_key) {
         {client_key: client_key}));
 };
 
-exports.send_rpc_auth_request = function(on_behalf_of){
+exports.send_rpc_auth_request = function (on_behalf_of) {
     connection_client._send_request(socket_helper.get_rpc_auth_request(connection_data.token, on_behalf_of,
         {email: on_behalf_of, auth_code: 'NO_REST'}));
 };
