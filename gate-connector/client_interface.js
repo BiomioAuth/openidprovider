@@ -12,7 +12,6 @@ var STATE_INITIALIZE = 'initialize_state',
     STATE_RPC_CALL_USER_CHECK = 'rpc_call_user_check',
     STATE_FINISH = 'finish_state';
 
-
 function ClientInterface(client_key, ready_callback) {
     this._client_key = client_key;
     this._ready_callback = ready_callback;
@@ -24,7 +23,6 @@ function ClientInterface(client_key, ready_callback) {
     this._timeout = null;
 
     this._client_callback = null;
-
     this._state_machine = StateMachine.create({
         initial: 'none',
         events: [
@@ -80,7 +78,7 @@ ClientInterface.prototype._get_internal_ready_callback = function () {
 ClientInterface.prototype._onReady = function (event, from, to, msg, self) {
     logger.log('info', msg);
     if (from == STATE_INITIALIZE) {
-        self._ready_callback();
+        setTimeout(self._ready_callback, 1);
     }
 };
 
