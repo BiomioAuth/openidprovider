@@ -1,66 +1,110 @@
-<div class="row">
+<div>
     <h1 class="text-center">Check token</h1>
-
+    <div class="row">
     <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
         <div class="form-group">
             <div class="col-sm-10">
                 <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{url}}">
-                <input type="hidden" class="form-control" name="externalToken" id="externalToken"
-                       value="{{externalToken}}">
+                <input type="hidden" class="form-control" name="externalToken" id="externalToken" value="{{externalToken}}">
             </div>
         </div>
     </form>
+    </div>
 
-    <p>&nbsp;</p>
+    <p class="clearfix"></p>
 
-    <div id="message" class="text-success text-center bg-success" style="padding: 15px;"></div>
+    <div class="row">
+      <div id="message" class="text-info text-center bg-info" style="padding: 15px;"></div>
+    </div>
 
 </div>
 <!--<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
 <script src="/socket.io/socket.io.js"></script>
 <script>
     var socket = io();
+    var externalToken = $('#externalToken').val();
 
-    function timeoutRedirect() {
+    function redirect(msg) {
+        msg = msg || null;
+        if (msg) {
+            showMessage(msg);
+        }
         var redirectUrl = $('#redirectUrl').val();
         setTimeout(function () {
             document.location.replace(redirectUrl);
         }, 3000);
     }
 
+    function checkStatus() {
+        setTimeout(function () {
+            socket.emit('check-status', externalToken);
+        }, 3000);
+    }
+
+    function tryAgain() {
+        console.info('try again');
+        socket.emit('run-auth', externalToken);
+    }
+
+    function setTimer(timeout) {
+        console.info('set timer: ', timeout);
+        setTimeout(function() {
+            console.info('time is out!');
+        }, timeout * 1000);
+    }
+
+    function showMessage(message) {
+        $('#message').html($('p').addClass('text-info text-center').html(message));
+    }
+
     $(function () {
-        var externalToken = $('#externalToken').val();
+        console.info('init');
 
         socket.emit('check-token', externalToken);
 
         socket.on('check-token', function (response) {
             console.info('check-token: ', response);
-            if (response.error) {
-                $('#message').append($('p').addClass('text-danger text-center bg-danger').text(response.message));
-                timeoutRedirect();
-            } else {
-                $('#message').append($('p').addClass('text-success text-center bg-success').text(response.message));
+
+            showMessage(response.msg);
+
+//            if (response.status != 'not_exists') {
                 socket.emit('run-auth', externalToken);
-            }
+//            }
         });
 
         socket.on('run-auth', function (response) {
             console.info('run-auth: ', response);
-            if (response.error) {
-
-            } else {
-
-                socket.emit('check-status', externalToken);
+            if (response.status == 'error') {
+                showMessage(response.msg);
+                redirect();
+                return;
             }
+
+            showMessage(response.msg);
+            setTimer(response.timeout);
+            socket.emit('check-status', externalToken);
         });
 
-        socket.on('check-status', function (response) {
+        socket.on('status', function (response) {
+
+            showMessage(response.msg);
+
             console.info('check-status: ', response);
-            if (response.error) {
 
-            } else {
-
+            switch(response.status) {
+                case 'error':
+                    showMessage(response.msg + '<a href="#" onclick="tryAgain();">Try again</a>');
+                    break;
+                case 'completed':
+                    redirect('You will be returned back to site');
+                    break;
+                case null:
+                case 'in_progress':
+                default:
+//                    checkStatus();
+                    break;
             }
+
         });
 
     });

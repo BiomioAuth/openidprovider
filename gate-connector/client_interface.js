@@ -231,7 +231,7 @@ ClientInterface.prototype.get_current_status = function () {
 };
 
 ClientInterface.prototype.finish = function(){
-    this._state_machine._finish('Client interactions finalized.');
+    this._state_machine._finish('Client interactions finalized.', this);
 };
 
 module.exports = ClientInterface;
