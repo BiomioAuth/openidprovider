@@ -23,6 +23,7 @@
 <script>
     var socket = io();
     var externalToken = $('#externalToken').val();
+    var $timer = $('#timer');
     var timerInstance;
 
     function redirect(msg) {
@@ -43,17 +44,17 @@
     }
 
     function tryAgain() {
-        socket.emit('run-auth', externalToken);
+//        socket.emit('check-token', externalToken);
+        document.location.href = document.location.href;
     }
 
     function setTimer(duration) {
-        console.info('set timer: ', duration);
+        $timer.show();
 
         var start = Date.now();
         var diff;
         var minutes;
         var seconds;
-        var $display = $('#timer');
 
         function timer() {
             diff = duration - (((Date.now() - start) / 1000) | 0);
@@ -64,10 +65,13 @@
             minutes = minutes < 10 ? "0" + minutes : minutes;
             seconds = seconds < 10 ? "0" + seconds : seconds;
 
-            $display.text(minutes + ":" + seconds);
+            $timer.text(minutes + ":" + seconds);
 
             if (diff <= 0) {
                 start = Date.now() + 1000;
+                console.info('time is out!');
+                hideTimer();
+                showMessage('Time is out! Need more time? <a href="#" onclick="tryAgain();">Try again</a>');
             }
         };
 
@@ -75,8 +79,9 @@
         timerInstance = setInterval(timer, 1000);
     }
 
-    function stopTimer() {
+    function hideTimer() {
         clearInterval(timerInstance);
+        $timer.text('').hide();
     }
 
     function showMessage(message) {
@@ -106,13 +111,17 @@
 
             showMessage(response.msg);
 
+            if (response.timeout == null) {
+                hideTimer();
+            }
+
             switch(response.status) {
                 case 'error':
-                    stopTimer();
+                    hideTimer();
                     showMessage(response.msg + '<a href="#" onclick="tryAgain();">Try again</a>');
                     break;
                 case 'completed':
-                    stopTimer();
+                    hideTimer();
                     showMessage(response.msg + '<br> You will be returned back to site');
                     redirect();
                     break;
