@@ -14,15 +14,16 @@
     <p class="clearfix"></p>
 
     <div class="row">
-      <div id="message" class="text-info text-center bg-info" style="padding: 15px;"></div>
+      <div id="timer" class="text-info text-center" style="padding: 15px; font-size: 2em;"></div>
+      <div id="message" class="text-info text-center" style="padding: 15px;"></div>
     </div>
 
 </div>
-<!--<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
 <script src="/socket.io/socket.io.js"></script>
 <script>
     var socket = io();
     var externalToken = $('#externalToken').val();
+    var timerInstance;
 
     function redirect(msg) {
         msg = msg || null;
@@ -42,23 +43,47 @@
     }
 
     function tryAgain() {
-        console.info('try again');
         socket.emit('run-auth', externalToken);
     }
 
-    function setTimer(timeout) {
-        console.info('set timer: ', timeout);
-        setTimeout(function() {
-            console.info('time is out!');
-        }, timeout * 1000);
+    function setTimer(duration) {
+        console.info('set timer: ', duration);
+
+        var start = Date.now();
+        var diff;
+        var minutes;
+        var seconds;
+        var $display = $('#timer');
+
+        function timer() {
+            diff = duration - (((Date.now() - start) / 1000) | 0);
+
+            minutes = (diff / 60) | 0;
+            seconds = (diff % 60) | 0;
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            $display.text(minutes + ":" + seconds);
+
+            if (diff <= 0) {
+                start = Date.now() + 1000;
+            }
+        };
+
+        timer();
+        timerInstance = setInterval(timer, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInstance);
     }
 
     function showMessage(message) {
-        $('#message').html($('p').addClass('text-info text-center').html(message));
+        $('#message').html($('p').addClass('msg text-info text-center bg-info').html(message));
     }
 
     $(function () {
-        console.info('init');
 
         socket.emit('check-token', externalToken);
 
@@ -67,41 +92,35 @@
 
             showMessage(response.msg);
 
-//            if (response.status != 'not_exists') {
-                socket.emit('run-auth', externalToken);
-//            }
-        });
+            if (response.status === 'not_exists') {
+                /*@todo: redirect to create user form */
 
-        socket.on('run-auth', function (response) {
-            console.info('run-auth: ', response);
-            if (response.status == 'error') {
-                showMessage(response.msg);
-                redirect();
                 return;
             }
 
-            showMessage(response.msg);
-            setTimer(response.timeout);
-            socket.emit('check-status', externalToken);
+            socket.emit('run-auth', externalToken);
         });
 
         socket.on('status', function (response) {
+            console.info('check-status: ', response);
 
             showMessage(response.msg);
 
-            console.info('check-status: ', response);
-
             switch(response.status) {
                 case 'error':
+                    stopTimer();
                     showMessage(response.msg + '<a href="#" onclick="tryAgain();">Try again</a>');
                     break;
                 case 'completed':
-                    redirect('You will be returned back to site');
+                    stopTimer();
+                    showMessage(response.msg + '<br> You will be returned back to site');
+                    redirect();
                     break;
-                case null:
                 case 'in_progress':
+                    showMessage(response.msg);
+                    setTimer(response.timeout);
+                case null:
                 default:
-//                    checkStatus();
                     break;
             }
 

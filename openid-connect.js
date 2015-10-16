@@ -696,8 +696,10 @@ OpenIDConnect.prototype.consent = function() {
                 scopes.push(i);
             }
             req.model.consent.destroy({user: req.session.user, client: req.session.client_id}, function(err, result) {
+              console.info('--', err, result);
                 req.model.consent.create({user: req.session.user, client: req.session.client_id, scopes: scopes}, function(err, consent) {
-                    res.redirect(return_url);
+                  console.info('---', req.session, err, consent);
+                  res.redirect(return_url);
                 });
             });
         } else {
