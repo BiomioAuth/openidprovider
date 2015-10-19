@@ -10,6 +10,7 @@ var STATE_INITIALIZE = 'initialize_state',
     STATE_READY = 'ready_state',
     STATE_RPC_CALL_AUTH = 'rpc_call_auth_state',
     STATE_RPC_CALL_USER_CHECK = 'rpc_call_user_check',
+    STATE_CONNECTION_LOST = 'connection_lost_state',
     STATE_FINISH = 'finish_state';
 
 function ClientInterface(client_key, ready_callback) {
@@ -22,18 +23,22 @@ function ClientInterface(client_key, ready_callback) {
     this._msg = null;
     this._timeout = null;
 
+    this._reconnect = false;
+    this._waiting_action = null;
+
     this._client_callback = null;
     this._state_machine = StateMachine.create({
         initial: 'none',
         events: [
-            {name: '_initialize', from: 'none', to: STATE_INITIALIZE},
+            {name: '_initialize', from: ['none', STATE_CONNECTION_LOST], to: STATE_INITIALIZE},
             {
                 name: '_ready',
                 from: [STATE_INITIALIZE, STATE_RPC_CALL_AUTH, STATE_RPC_CALL_USER_CHECK],
                 to: STATE_READY
             },
-            {name: '_rpc_auth', from: STATE_READY, to: STATE_RPC_CALL_AUTH},
-            {name: '_check_user', from: STATE_READY, to: STATE_RPC_CALL_USER_CHECK},
+            {name: '_rpc_auth', from: [STATE_READY], to: STATE_RPC_CALL_AUTH},
+            {name: '_check_user', from: [STATE_READY], to: STATE_RPC_CALL_USER_CHECK},
+            {name: '_connection_lost', from: STATE_READY, to: STATE_RPC_CALL_USER_CHECK},
             {name: '_finish', from: '*', to: STATE_FINISH}
         ],
         callbacks: {
@@ -41,6 +46,7 @@ function ClientInterface(client_key, ready_callback) {
             on_ready: this._onReady,
             on_rpc_auth: this._onRpcCallAuth,
             on_check_user: this._onCheckUser,
+            on_connection_lost: this._on_connection_lost_ev,
             on_finish: this._onFinish
         }
     });
@@ -53,6 +59,7 @@ ClientInterface.prototype._onInitialize = function (event, from, to, msg, self) 
     } else {
         logger.log('info', 'Initializing internal state machine.');
     }
+    internal_state_machine.add_lost_connection_callback(self._get_internal_lost_connection_callback());
     if (!internal_state_machine.is_ready()) {
         internal_state_machine.add_ready_callback(self._get_internal_ready_callback());
         if (internal_state_machine.is_disconnected()) {
@@ -61,6 +68,16 @@ ClientInterface.prototype._onInitialize = function (event, from, to, msg, self) 
     } else {
         self._get_internal_ready_callback()();
     }
+};
+
+ClientInterface.prototype._get_internal_lost_connection_callback = function(){
+    var self = this;
+    return function(){
+        logger.log('info', 'Internal state machine is in state DISCONNECTED.');
+        if(self._state_machine.is(STATE_READY)){
+            self._state_machine._connection_lost('Will require re-connect.', self);
+        }
+    };
 };
 
 ClientInterface.prototype._get_internal_ready_callback = function () {
@@ -75,9 +92,21 @@ ClientInterface.prototype._get_internal_ready_callback = function () {
     };
 };
 
+ClientInterface.prototype._on_connection_lost_ev = function(event, from, to, msg, self){
+    logger.log('info', msg);
+    self._reconnect = true;
+    self._waiting_action = null;
+};
+
 ClientInterface.prototype._onReady = function (event, from, to, msg, self) {
     logger.log('info', msg);
-    if (from == STATE_INITIALIZE) {
+    if(self._reconnect){
+        self._reconnect = false;
+        if(self._waiting_action != null){
+            self._waiting_action();
+            self._waiting_action = null;
+        }
+    }else if (from == STATE_INITIALIZE) {
         setTimeout(self._ready_callback, 1);
     }
 };
@@ -175,7 +204,15 @@ ClientInterface.prototype.user_exists = function (response_callback) {
         this._client_callback = null;
     }
     if (this._validate_state()) {
-        this._state_machine._check_user('Check if user - ' + this._client_key + ' exists.', this);
+        if(this._state_machine.is(STATE_CONNECTION_LOST)){
+            var self = this;
+            this._waiting_action = function(){
+                self._state_machine._check_user('Check if user - ' + self._client_key + ' exists.', self);
+            };
+            this._state_machine._initialize('Re-Initializing internal state machine.', this);
+        }else{
+            this._state_machine._check_user('Check if user - ' + this._client_key + ' exists.', this);
+        }
     }
 };
 
@@ -198,7 +235,15 @@ ClientInterface.prototype.run_auth = function (response_callback) {
                 }, 1);
             }
         } else {
-            this._state_machine._rpc_auth('Running authentication on behalf of - ' + this._on_behalf_of, this);
+            if(this._state_machine.is(STATE_CONNECTION_LOST)){
+                var self = this;
+                this._waiting_action = function(){
+                    self._state_machine._rpc_auth('Running authentication on behalf of - ' + self._on_behalf_of, self);
+                };
+                this._state_machine._initialize('Re-Initializing internal state machine.', this);
+            }else{
+                this._state_machine._rpc_auth('Running authentication on behalf of - ' + this._on_behalf_of, this);
+            }
         }
     }
 };

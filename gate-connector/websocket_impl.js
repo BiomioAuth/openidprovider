@@ -7,6 +7,7 @@ var rsa_sign = require('jsrsasign');
 var connection_client = new WebSocketClient();
 var message_listener_func;
 var error_callback_func;
+var close_callback_func;
 
 var current_connection = {connected: false};
 
@@ -80,7 +81,7 @@ connection_client.on('connect', function (connection) {
     });
     connection.on('close', function () {
         logger.log('info', 'Connection closed.');
-        error_callback_func();
+        close_callback_func();
     });
     connection.on('message', function (message) {
         var message_data = message.utf8Data;
@@ -142,6 +143,9 @@ exports.send_digest_request = function () {
 };
 
 exports.reset_connection_data = function () {
+    if(current_connection.connected){
+        connection_client.close();
+    }
     connection_data = {
         token: '',
         refresh_token: '',
@@ -150,9 +154,10 @@ exports.reset_connection_data = function () {
     };
 };
 
-exports.initialize_connection = function (message_listener, error_callback) {
+exports.initialize_connection = function (message_listener, error_callback, close_callback) {
     message_listener_func = message_listener;
     error_callback_func = error_callback;
+    close_callback_func = close_callback;
     connection_client.connect(socket_helper.SOCKET_URL);
 };
 

@@ -14,6 +14,9 @@ var subscribed_callbacks = {};
 var temp_keys_subscriptions = {};
 
 var ready_callbacks = [];
+var lost_connection_callbacks = [];
+
+var pending_requests = {};
 
 /**
  * Handles state machine 'connected' state.
@@ -24,7 +27,7 @@ var ready_callbacks = [];
  */
 var onConnect = function (event, from, to, msg) {
     logger.log('info', msg);
-    socket_client.initialize_connection(message_listener, error_callback);
+    socket_client.initialize_connection(message_listener, error_callback, close_callback);
 };
 
 var onRegister = function (event, from, to, msg) {
@@ -47,11 +50,28 @@ var onReady = function (event, from, to, msg) {
         setTimeout(ready_callback, 1);
     }
     ready_callbacks = [];
+    var curr_pending_requests = pending_requests;
+    pending_requests = {};
+    for(var pending_request in curr_pending_requests){
+        if(curr_pending_requests.hasOwnProperty(pending_request)){
+            curr_pending_requests[pending_request](pending_request);
+            //if(curr_pending_requests[pending_request] == 'check_user'){
+            //    state_machine.check_if_user_exists(pending_request);
+            //}else{
+            //    state_machine.run_verification(pending_request);
+            //}
+        }
+    }
 };
 
 var onDisconnect = function (event, from, to, msg) {
     logger.log('info', msg);
     socket_client.reset_connection_data();
+    for(var i = 0; i < lost_connection_callbacks.length; i++){
+        var lost_connection_callback = lost_connection_callbacks[i];
+        setTimeout(lost_connection_callback, 1);
+    }
+    lost_connection_callbacks = [];
 };
 
 var state_machine = StateMachine.create({
@@ -76,6 +96,10 @@ var state_machine = StateMachine.create({
     }
 });
 
+state_machine.add_lost_connection_callback = function(lost_connection_callback){
+    lost_connection_callbacks.push(lost_connection_callback);
+};
+
 state_machine.subscribe_for_responses = function (on_behalf_of, callback) {
     subscribed_callbacks[on_behalf_of] = callback;
 };
@@ -98,11 +122,15 @@ state_machine.add_ready_callback = function (callback) {
 };
 
 state_machine.check_if_user_exists = function (client_key, temp_callback) {
-    temp_keys_subscriptions[client_key] = temp_callback;
+    pending_requests[client_key] = state_machine.check_if_user_exists;
+    if(typeof temp_callback != 'undefined' && temp_callback){
+        temp_keys_subscriptions[client_key] = temp_callback;
+    }
     socket_client.send_check_user_request(client_key);
 };
 
 state_machine.run_verification = function (on_behalf_of) {
+    pending_requests[on_behalf_of] = state_machine.run_verification;
     socket_client.send_rpc_auth_request(on_behalf_of);
 };
 
@@ -118,6 +146,9 @@ var message_listener = function (message) {
             disc_msg = parsed_message.status;
         }
         state_machine.disconnect('Server sent bye, reason: ' + disc_msg);
+        if(disc_msg.indexOf('Invalid token') != -1){
+            state_machine.connect('Re-initializing socket connection due to invalid token error.');
+        }
     } else if (parsed_message.msg.oid == 'nop') {
         socket_client.set_nop_tokens(parsed_message);
     } else if (state_machine.is(STATE_CONNECTED)) {
@@ -132,6 +163,9 @@ var message_listener = function (message) {
             var response = parsed_message.msg.data;
             response.status = parsed_message.msg['rpcStatus'];
             var on_behalf_of = parsed_message.msg['onBehalfOf'];
+            if(pending_requests.hasOwnProperty(on_behalf_of)){
+                delete pending_requests[on_behalf_of];
+            }
             if (subscribed_callbacks.hasOwnProperty(on_behalf_of)) {
                 subscribed_callbacks[on_behalf_of](response);
             } else if (temp_keys_subscriptions.hasOwnProperty(on_behalf_of)) {
@@ -164,4 +198,10 @@ var error_callback = function (error) {
     }
     ready_callbacks = [];
     state_machine.disconnect(disc_msg);
+};
+
+var close_callback = function(){
+    if(!state_machine.is(STATE_DISCONNECTED)){
+        state_machine.disconnect('Socket connection was closed becoming DISCONNECTED.');
+    }
 };
