@@ -94,10 +94,10 @@ app.use(sessionMiddleware);
 
 // Enable CORS
 app.use(function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'http://127.0.0.1:8000');
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.header('Access-Control-Allow-Credentials', "true");
+  //res.header('Access-Control-Allow-Credentials', "true");
   next();
 });
 
@@ -109,19 +109,25 @@ io.on('connection', function(socket) {
   socket.on('check-token', function(externalToken) {
     console.log('check-token: ', externalToken);
 
+    /** if instance is exist - finish it! */
+    if(connections[socket.id]) {
+      console.info('FINISH');
+      connections[socket.id].finish();
+      delete connections[socket.id];
+    }
+
     var conn = new GateConnector(externalToken, function() {
 
       conn.user_exists(function(exists) {
         console.info('user exists ', exists);
-        if (exists) {
-          io.emit('check-token', {message: 'Please run mobile application and go through face recognition.'});
-        } else {
-          io.emit('check-token', {error: 'You are not registered yet!'});
-        }
+        io.emit('check-token', exists);
       });
+
+      console.info('1: ', conn);
+      connections[socket.id] = conn;
+
     });
 
-    connections[socket.id] = conn;
   });
 
   socket.on('run-auth', function(msg) {
@@ -129,25 +135,38 @@ io.on('connection', function(socket) {
 
     var conn = connections[socket.id];
 
-    /* callback will be called few times: in_progress, completed */
-    conn.run_auth(function(result) {
-      console.log('!!! RESULT - ' + JSON.stringify(result));
+    console.info('2: ', conn);
 
-      if (result.status === 'completed') {
-        var data = socket.handshake || socket.request;
-        var cookies = cookie.parse(data.headers.cookie);
-        var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
+    try {
+      /* callback will be called few times: in_progress, completed */
+      conn.run_auth(function (result) {
+        console.log('RUN AUTH STATUS: ' + JSON.stringify(result));
 
-        sessionStore.get(sid, function (error, sess) {
-          sess.user = 1; //conn._on_behalf_of;
+        if (result.status === 'completed') {
+          var data = socket.handshake || socket.request;
+          var cookies = cookie.parse(data.headers.cookie);
+          var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
 
-          sessionStore.set(sid, sess, function (error, result) {});
-        })
-      }
+          sessionStore.get(sid, function (error, sess) {
+            /*@todo: need user ID */
+            sess.user = 1; //conn._on_behalf_of;
 
-      io.emit('status', result);
-    });
+            sessionStore.set(sid, sess, function (error, result) {
+            });
+          })
+        }
 
+        io.emit('status', result);
+      });
+
+    } catch(ex) {
+      console.warn('EXCEPTION: ', ex);
+    }
+
+  });
+
+  socket.on('error', function(response) {
+    console.log('SOCKET ON ERROR: ', response);
   });
 
   socket.on('disconnect', function() {
@@ -170,7 +189,7 @@ app.get('/', function(req, res) {
 
 app.get('/login', auth.login);
 
-app.post('/login', oidc.login(auth.validate), auth.validateSuccess, auth.validateFail);
+//app.post('/login', oidc.login(auth.validate), auth.validateSuccess, auth.validateFail);
 
 app.all('/logout', oidc.removetokens(), auth.logout);
 

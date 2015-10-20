@@ -3,21 +3,14 @@ var logout = function(req, res, next) {
   res.redirect('/login');
 };
 
-var validate = function (req, next) {
+/*var validate = function (req, next) {
   console.info('VALIDATE USER');
   delete req.session.error;
 
   if (req.body.externalToken) {
 
-    //gate.findUserByToken(req.body.externalToken, function(error, user) {
-    //  return next(error, user);
-    //});
     return next(null, {id: 1});
   } else {
-
-    //gate.findUserByEmail(req.body.email, function(error, user) {
-    //  return next(error, user);
-    //});
 
     return next(null, {id: 1});
   }
@@ -32,6 +25,7 @@ var validateFail = function (err, req, res, next) {
   req.session.error = err.message;
   res.redirect(req.path);
 };
+ */
 
 var login = function(req, res, next) {
 
@@ -58,14 +52,16 @@ var login = function(req, res, next) {
       url: returnURL
     });
   } else {
-    res.render('login');
+    res.render('login', {
+      url: returnURL
+    });
   }
 };
 
 module.exports = {
   login: login,
   logout: logout,
-  validate: validate,
-  validateSuccess: validateSuccess,
-  validateFail:validateFail
+  //validate: validate,
+  //validateSuccess: validateSuccess,
+  //validateFail:validateFail
 }

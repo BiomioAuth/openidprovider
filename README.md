@@ -8,4 +8,11 @@
 
 ## Run
 
-- `npm start`
+- `nf start`
+
+
+## Run in production
+
+- `sudo nf export -o /etc/init` - it install upstart scripts, run this only once!
+
+- `sudo start foreman`

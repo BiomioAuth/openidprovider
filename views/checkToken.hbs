@@ -1,14 +1,14 @@
 <div>
     <h1 class="text-center">Check token</h1>
     <div class="row">
-    <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
-        <div class="form-group">
-            <div class="col-sm-10">
-                <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{url}}">
-                <input type="hidden" class="form-control" name="externalToken" id="externalToken" value="{{externalToken}}">
-            </div>
-        </div>
-    </form>
+      <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
+          <div class="form-group">
+              <div class="col-sm-10">
+                  <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{url}}">
+                  <input type="hidden" class="form-control" name="token" id="token" value="{{externalToken}}">
+              </div>
+          </div>
+      </form>
     </div>
 
     <p class="clearfix"></p>
@@ -20,121 +20,17 @@
 
 </div>
 <script src="/socket.io/socket.io.js"></script>
+<script src="/public/js/auth.js"></script>
 <script>
-    var socket = io();
-    var externalToken = $('#externalToken').val();
-    var $timer = $('#timer');
-    var timerInstance;
-
-    function redirect(msg) {
-        msg = msg || null;
-        if (msg) {
-            showMessage(msg);
-        }
-        var redirectUrl = $('#redirectUrl').val();
-        setTimeout(function () {
-            document.location.replace(redirectUrl);
-        }, 3000);
-    }
-
-    function checkStatus() {
-        setTimeout(function () {
-            socket.emit('check-status', externalToken);
-        }, 3000);
-    }
-
-    function tryAgain() {
-//        socket.emit('check-token', externalToken);
-        document.location.href = document.location.href;
-    }
-
-    function setTimer(duration) {
-        $timer.show();
-
-        var start = Date.now();
-        var diff;
-        var minutes;
-        var seconds;
-
-        function timer() {
-            diff = duration - (((Date.now() - start) / 1000) | 0);
-
-            minutes = (diff / 60) | 0;
-            seconds = (diff % 60) | 0;
-
-            minutes = minutes < 10 ? "0" + minutes : minutes;
-            seconds = seconds < 10 ? "0" + seconds : seconds;
-
-            $timer.text(minutes + ":" + seconds);
-
-            if (diff <= 0) {
-                start = Date.now() + 1000;
-                console.info('time is out!');
-                hideTimer();
-                showMessage('Time is out! Need more time? <a href="#" onclick="tryAgain();">Try again</a>');
-            }
-        };
-
-        timer();
-        timerInstance = setInterval(timer, 1000);
-    }
-
-    function hideTimer() {
-        clearInterval(timerInstance);
-        $timer.text('').hide();
-    }
-
-    function showMessage(message) {
-        $('#message').html($('p').addClass('msg text-info text-center bg-info').html(message));
-    }
-
     $(function () {
-
-        socket.emit('check-token', externalToken);
-
-        socket.on('check-token', function (response) {
-            console.info('check-token: ', response);
-
-            showMessage(response.msg);
-
-            if (response.status === 'not_exists') {
-                /*@todo: redirect to create user form */
-
-                return;
-            }
-
-            socket.emit('run-auth', externalToken);
+        App.init({
+            flow: 'token',
+            idHolder: $('#token'),
+            messageHolder: $('#message'),
+            timerHolder:  $('#timer'),
+            redirectUrl: $('#redirectUrl').val()
         });
 
-        socket.on('status', function (response) {
-            console.info('check-status: ', response);
-
-            showMessage(response.msg);
-
-            if (response.timeout == null) {
-                hideTimer();
-            }
-
-            switch(response.status) {
-                case 'error':
-                    hideTimer();
-                    showMessage(response.msg + '<a href="#" onclick="tryAgain();">Try again</a>');
-                    break;
-                case 'completed':
-                    hideTimer();
-                    showMessage(response.msg + '<br> You will be returned back to site');
-                    redirect();
-                    break;
-                case 'in_progress':
-                    showMessage(response.msg);
-                    setTimer(response.timeout);
-                case null:
-                default:
-                    break;
-            }
-
-        });
-
+        App.run();
     });
-
 </script>
