@@ -550,7 +550,7 @@ OpenIDConnect.prototype.auth = function() {
                                         }
                                     });
                                 };
-                                var setToken = function(token) {
+                                var setToken = function(token) {ку
                                     req.model.auth.create({
                                         client: req.session.client_id,
                                         scope: params.scope.split(' '),

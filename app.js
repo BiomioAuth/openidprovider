@@ -8,11 +8,13 @@ var rs = require('connect-redis')(expressSession);
 var extend = require('extend');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
+var multer = require('multer');
 var cookieParser = require('cookie-parser');
 var errorHandler = require('errorhandler');
 var methodOverride = require('method-override');
 var _ = require('lodash');
-var Q = require('q');
+//var Q = require('q');
+var favicon = require('serve-favicon');
 
 var app = express();
 var server = http.Server(app);
@@ -71,11 +73,18 @@ var exphbs = require('express-handlebars');
 app.engine('.hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
 app.set('view engine', '.hbs');
 
-app.use('/public',  express.static(__dirname + '/public'));
-app.use('/bower_components',  express.static(__dirname + '/bower_components'));
+//app.use('/public',  express.static(__dirname + '/public'));
+//app.use('/bower_components',  express.static(__dirname + '/bower_components'));
 
 app.use(logger('dev'));
-app.use(bodyParser());
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+//app.use(multer({ dest: './public/uploads/'}));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(favicon(__dirname + '/public/favicon.ico'));
+
+
 app.use(methodOverride());
 app.use(cookieParser(config.session.secret));
 
@@ -123,9 +132,7 @@ io.on('connection', function(socket) {
         io.emit('check-token', exists);
       });
 
-      console.info('1: ', conn);
       connections[socket.id] = conn;
-
     });
 
   });
@@ -134,8 +141,6 @@ io.on('connection', function(socket) {
     console.log('run-auth: ', msg);
 
     var conn = connections[socket.id];
-
-    console.info('2: ', conn);
 
     try {
       /* callback will be called few times: in_progress, completed */
@@ -166,7 +171,7 @@ io.on('connection', function(socket) {
   });
 
   socket.on('error', function(response) {
-    console.log('SOCKET ON ERROR: ', response);
+    console.warn('SOCKET ON ERROR: ', response);
   });
 
   socket.on('disconnect', function() {
@@ -177,7 +182,7 @@ io.on('connection', function(socket) {
       conn.finish();
       delete connections[socket.id];
     } else {
-      console.error('socket id undefined');
+      console.warn('socket id undefined');
     }
   });
 

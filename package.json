@@ -1,5 +1,5 @@
 {
-  "name": "openid-connect-example",
+  "name": "BiomioOpenidConnectProvider",
   "version": "0.0.3",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "base64url": "*",
-    "body-parser": "*",
+    "body-parser": "^1.5.2",
     "clean-obj": "*",
     "connect-redis": "*",
     "cookie": "^0.2.2",
@@ -27,10 +27,12 @@
     "method-override": "*",
     "modelling": "*",
     "morgan": "*",
+    "multer": "^1.1.0",
     "node-state": "^1.4.1",
     "npm": "^3.3.6",
     "q": "^1.4.1",
     "sails-redis": "git://github.com/balderdashy/sails-redis",
+    "serve-favicon": "^2.3.0",
     "session.socket.io-express4": "^0.1.1",
     "socket.io": "^1.3.7",
     "socket.io-session-middleware": "0.0.4",
