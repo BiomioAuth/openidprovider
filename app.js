@@ -73,17 +73,12 @@ var exphbs = require('express-handlebars');
 app.engine('.hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
 app.set('view engine', '.hbs');
 
-//app.use('/public',  express.static(__dirname + '/public'));
-//app.use('/bower_components',  express.static(__dirname + '/bower_components'));
-
 app.use(logger('dev'));
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 //app.use(multer({ dest: './public/uploads/'}));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(favicon(__dirname + '/public/favicon.ico'));
-
 
 app.use(methodOverride());
 app.use(cookieParser(config.session.secret));
@@ -101,7 +96,7 @@ var sessionMiddleware = expressSession({
 app.use(sessionMiddleware);
 
 
-// Enable CORS
+/** Enable CORS */
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -153,12 +148,12 @@ io.on('connection', function(socket) {
           var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
 
           sessionStore.get(sid, function (error, sess) {
-            /*@todo: need user ID */
-            sess.user = 1; //conn._on_behalf_of;
+            console.info('session get: ', error, sess);
+            //sess.user = 1; //conn._on_behalf_of;
+            sess.user = conn._on_behalf_of;
 
-            sessionStore.set(sid, sess, function (error, result) {
-            });
-          })
+            sessionStore.set(sid, sess, function (error, result) { });
+          });
         }
 
         io.emit('status', result);

@@ -64,7 +64,7 @@ var defaults = {
                         middle_name: 'string',
                         family_name: {type: 'string', required: true},
                         profile: 'string',
-                        email: {type: 'string', required: true, unique: true},
+                        email: {type: 'string', required: true, unique: true, primaryKey: true},
                         password: 'string',
                         picture: 'binary',
                         birthdate: 'date',
@@ -1085,7 +1085,7 @@ OpenIDConnect.prototype.userInfo = function() {
             self.check('openid', /profile|email/),
             self.use('user'),
             function(req, res, next) {
-                req.model.user.findOne({id: req.session.user}, function(err, user) {
+                req.model.user.findOne({email: req.session.user}, function(err, user) {
                     if(req.check.scopes.indexOf('profile') != -1) {
                         user.sub = req.session.sub||req.session.user;
                         delete user.id;
