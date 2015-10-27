@@ -1,8 +1,3 @@
-var logout = function(req, res, next) {
-  req.session.destroy();
-  res.redirect('/login');
-};
-
 /*var validate = function (req, next) {
   console.info('VALIDATE USER');
   delete req.session.error;
@@ -27,41 +22,48 @@ var validateFail = function (err, req, res, next) {
 };
  */
 
+var logout = function(req, res, next) {
+  return function(req, res, next) {
+    req.session.destroy();
+    res.redirect('/login');
+  }
+};
+
 var login = function(req, res, next) {
+  return function(req, res, next) {
 
-  var externalToken = req.query['external_token'];
-  var redirectURI = req.path;;
-  var returnURL = req.query['return_url'];
+    var externalToken = req.query['external_token'];
+    var redirectURI = req.path;
+    ;
+    var returnURL = req.query['return_url'];
 
-  if (returnURL) {
-    var params = returnURL.split('&');
+    if (returnURL) {
+      var params = returnURL.split('&');
 
-    for(var i = 0; i < params.length; i++) {
-      var item = params[i].split('=');
+      for (var i = 0; i < params.length; i++) {
+        var item = params[i].split('=');
 
-      if (item[0] == 'redirect_uri') {
-        redirectURI = decodeURIComponent(item[1]);
-        break;
+        if (item[0] == 'redirect_uri') {
+          redirectURI = decodeURIComponent(item[1]);
+          break;
+        }
       }
     }
-  }
 
-  if (externalToken) {
-    res.render('checkToken', {
-      externalToken: externalToken,
-      url: returnURL
-    });
-  } else {
-    res.render('login', {
-      url: returnURL
-    });
+    if (externalToken) {
+      res.render('checkToken', {
+        externalToken: externalToken,
+        url: returnURL
+      });
+    } else {
+      res.render('login', {
+        url: returnURL
+      });
+    }
   }
 };
 
 module.exports = {
   login: login,
-  logout: logout,
-  //validate: validate,
-  //validateSuccess: validateSuccess,
-  //validateFail:validateFail
+  logout: logout
 }

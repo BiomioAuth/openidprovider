@@ -637,7 +637,7 @@ OpenIDConnect.prototype.auth = function() {
                             }
                             if(resp.access_token && resp.id_token) {
                                 var hbuf = crypto.createHmac('sha256', req.session.client_secret).update(resp.access_token).digest();
-                                resp.id_token.ht_hash = base64url(hbuf.toString('ascii', 0, hbuf.length/2));
+                                resp.id_token.at_hash = base64url(hbuf.toString('ascii', 0, hbuf.length/2));
                                 resp.id_token = jwt.encode(resp.id_token, req.session.client_secret);
                             }
                             deferred.resolve({params: params, type: params.response_type != 'code'?'f':'q', resp: resp});
@@ -696,9 +696,7 @@ OpenIDConnect.prototype.consent = function() {
                 scopes.push(i);
             }
             req.model.consent.destroy({user: req.session.user, client: req.session.client_id}, function(err, result) {
-              console.info('--', err, result);
                 req.model.consent.create({user: req.session.user, client: req.session.client_id, scopes: scopes}, function(err, consent) {
-                  console.info('---', req.session, err, consent);
                   res.redirect(return_url);
                 });
             });
@@ -782,10 +780,10 @@ OpenIDConnect.prototype.token = function() {
                         .exec(function(err, auth) {
                             if(!err && auth) {
                                 if(auth.status != 'created') {
-                                    auth.refresh.forEach(function(refresh) {
+                                    auth.refreshTokens.forEach(function(refresh) {
                                         refresh.destroy();
                                     });
-                                    auth.access.forEach(function(access) {
+                                    auth.accessTokens.forEach(function(access) {
                                         access.destroy();
                                     });
                                     auth.destroy();
@@ -824,15 +822,15 @@ OpenIDConnect.prototype.token = function() {
                         req.model.refresh.findOne({token: params.refresh_token}, function(err, refresh) {
                             if(!err && refresh) {
                                 req.model.auth.findOne({id: refresh.auth})
-	                            .populate('accessTokens')
-	                            .populate('refreshTokens')
+	                              .populate('accessTokens')
+	                              .populate('refreshTokens')
                                 .populate('client')
                                 .exec(function(err, auth) {
                                     if(refresh.status != 'created') {
-                                        auth.access.forEach(function(access){
+                                        auth.accessTokens.forEach(function(access){
                                             access.destroy();
                                         });
-                                        auth.refresh.forEach(function(refresh){
+                                        auth.refreshTokens.forEach(function(refresh){
                                             refresh.destroy();
                                         });
                                         auth.destroy();
@@ -912,10 +910,10 @@ OpenIDConnect.prototype.token = function() {
                                 refresh.destroy();
                                 if(refresh.auth) {
                                     req.model.auth.findOne({id: refresh.auth})
-		                            .populate('accessTokens')
-		                            .populate('refreshTokens')
+		                                .populate('accessTokens')
+		                                .populate('refreshTokens')
                                     .exec(function(err, auth) {
-                                        if(!auth.access.length && !auth.refresh.length) {
+                                        if(!auth.accessTokens.length && !auth.refreshTokens.length) {
                                             auth.destroy();
                                         }
                                     });
@@ -954,7 +952,7 @@ OpenIDConnect.prototype.token = function() {
 				                            .populate('accessTokens')
 				                            .populate('refreshTokens')
                                             .exec(function(err, auth) {
-                                                if(!auth.access.length && !auth.refresh.length) {
+                                                if(!auth.accessTokens.length && !auth.refreshTokens.length) {
                                                     auth.destroy();
                                                 }
                                             });
@@ -1050,7 +1048,7 @@ OpenIDConnect.prototype.check = function() {
                                 });
                                 if(errors.length > 1) {
                                     var last = errors.pop();
-                                    self.errorHandle(res, null, 'invalid_scope', 'Required scopes '+errors.join(', ')+' and '+last+' where not granted.');
+                                    self.errorHandle(res, null, 'invalid_scope', 'Required scopes '+errors.join(', ')+' and '+last+' were not granted.');
                                 } else if(errors.length > 0) {
                                     self.errorHandle(res, null, 'invalid_scope', 'Required scope '+errors.pop()+' not granted.');
                                 } else {

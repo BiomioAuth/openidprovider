@@ -13,7 +13,6 @@ var cookieParser = require('cookie-parser');
 var errorHandler = require('errorhandler');
 var methodOverride = require('method-override');
 var _ = require('lodash');
-//var Q = require('q');
 var favicon = require('serve-favicon');
 
 var app = express();
@@ -69,6 +68,7 @@ if ('development' == app.get('env')) {
   app.use(errorHandler());
 }
 
+/* configure template engine */
 var exphbs = require('express-handlebars');
 app.engine('.hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
 app.set('view engine', '.hbs');
@@ -76,10 +76,8 @@ app.set('view engine', '.hbs');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-//app.use(multer({ dest: './public/uploads/'}));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(favicon(__dirname + '/public/favicon.ico'));
-
 app.use(methodOverride());
 app.use(cookieParser(config.session.secret));
 
@@ -149,10 +147,11 @@ io.on('connection', function(socket) {
 
           sessionStore.get(sid, function (error, sess) {
             console.info('session get: ', error, sess);
-            //sess.user = 1; //conn._on_behalf_of;
             sess.user = conn._on_behalf_of;
 
-            sessionStore.set(sid, sess, function (error, result) { });
+            sessionStore.set(sid, sess, function (error, result) {
+              error && console.error(error);
+            });
           });
         }
 
@@ -187,11 +186,11 @@ app.get('/', function(req, res) {
   res.render('index', {});
 });
 
-app.get('/login', auth.login);
+app.get('/login', auth.login());
 
 //app.post('/login', oidc.login(auth.validate), auth.validateSuccess, auth.validateFail);
 
-app.all('/logout', oidc.removetokens(), auth.logout);
+app.all('/logout', oidc.removetokens(), auth.logout());
 
 //authorization endpoint
 app.get('/user/authorize', oidc.auth());
@@ -200,18 +199,19 @@ app.get('/user/authorize', oidc.auth());
 app.post('/user/token', oidc.token());
 
 //user consent form
-app.get('/user/consent', user.consentForm);
+app.get('/user/consent', user.consentForm());
 
 app.post('/user/consent', oidc.consent());
 
 //user creation form
-app.get('/user/create', user.createForm);
+app.get('/user/create', user.createForm());
+
 
 /** Client routes */
-app.get('/client/register', oidc.use('client'), client.registerForm);
+app.get('/client/register', oidc.use('client'), client.registerForm());
+app.post('/client/register', oidc.use('client'), client.registerAction());
 
-app.post('/client/register', oidc.use('client'), client.registerAction);
-
+/*
 app.get('/client', oidc.use('client'), client.get);
-
 app.get('/client/:id', oidc.use('client'), client.getAll);
+*/
