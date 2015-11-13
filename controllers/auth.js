@@ -34,7 +34,7 @@ var login = function(req, res, next) {
 
     var externalToken = req.query['external_token'];
     var redirectURI = req.path;
-    ;
+
     var returnURL = req.query['return_url'];
 
     if (returnURL) {
@@ -62,6 +62,7 @@ var login = function(req, res, next) {
     }
   }
 };
+
 
 module.exports = {
   login: login,

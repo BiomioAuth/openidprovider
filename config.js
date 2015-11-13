@@ -5,7 +5,21 @@ module.exports = {
     ttl: 3600
   },
   session: {
-    secret: 'is2Dio5phax0uuhi',
-    cookie: 'connect.sid'
-  }
+    secret: "is2Dio5phax0uuhi",
+    cookie: "connect.sid"
+  },
+  gate: {
+    websocketUrl: "wss://gate.biom.io:8090/websocket"
+  },
+  appId: "32ec6214f5b17ecf769d9d2a6c179742",
+  resources: [
+    {
+      rProperties: "",
+      rType: "fp-scanner"
+    },
+    /*      {
+     rProperties: "",
+     rType: "ldap"
+     }*/
+  ]
 }

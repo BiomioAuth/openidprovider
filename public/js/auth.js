@@ -44,7 +44,7 @@ var App = (function() {
       switch(response.status) {
         case 'error':
           hideTimer();
-          showMessage(response.msg + '<a href="#" onclick="App.tryAgain();" class="btn btn-primary btn-sm"> Try again</a>');
+          showMessage(response.msg + '<br> <a href="#" onclick="App.tryAgain();" class="btn btn-default btn-sm"> Try again</a>');
           break;
         case 'completed':
           hideTimer();
@@ -52,6 +52,8 @@ var App = (function() {
           redirect();
           break;
         case 'in_progress':
+          /* override message */
+          response.msg = "Open Biomio application on your phone to proceed";
           showMessage(response.msg);
           setTimer(response.timeout);
           break;
@@ -133,7 +135,7 @@ var App = (function() {
       if (diff <= 0) {
         start = Date.now() + 1000;
         hideTimer();
-        showMessage('Time is out! Need more time? <a href="#" onclick="App.tryAgain();" class="btn btn-primary btn-sm"> Try again</a>');
+        showMessage('Time is out! Need more time? <br/> <a href="#" onclick="App.tryAgain();" class="btn btn-default btn-sm"> Try again</a>');
       }
     };
 
@@ -147,7 +149,7 @@ var App = (function() {
   };
 
   var showMessage = function(message) {
-    var html = '<p class="msg text-info text-center bg-info">' + message + '</p>';
+    var html = '<p class="msg">' + message + '</p>';
     $messageHolder.html(html);
   };
 

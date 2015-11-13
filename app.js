@@ -8,12 +8,13 @@ var rs = require('connect-redis')(expressSession);
 var extend = require('extend');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
-var multer = require('multer');
 var cookieParser = require('cookie-parser');
 var errorHandler = require('errorhandler');
 var methodOverride = require('method-override');
 var _ = require('lodash');
 var favicon = require('serve-favicon');
+var fs = require('fs');
+var BiomioNode = require('biomio-node');
 
 var app = express();
 var server = http.Server(app);
@@ -21,7 +22,6 @@ var io = require('socket.io')(server);
 
 var connections = {};
 var config = require('./config');
-var GateConnector = require('./gate-connector');
 var client = require('./controllers/client');
 var user = require('./controllers/user');
 var auth = require('./controllers/auth');
@@ -73,6 +73,7 @@ var exphbs = require('express-handlebars');
 app.engine('.hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
 app.set('view engine', '.hbs');
 
+/* set middlewares */
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -105,6 +106,33 @@ app.use(function(req, res, next) {
 
 server.listen(app.get('port'));
 
+
+
+try {
+  var privateKey = fs.readFileSync(__dirname + "/private.key").toString();
+} catch (e) {
+  console.error('Can\'t find/read file "private.key"!');
+  process.exit(1);
+}
+
+var gateOptions = {
+  gateURL: config.gate.websocketUrl,
+  appId: config.appId,
+  appKey: privateKey,
+  appType: 'extension', // probe | extension
+  onTry: function(data) {
+    console.info('onTry ', data);
+    return ["true"];
+  },
+
+  /* optional parameters */
+  osId: 'linux',
+  headerOid: 'clientHeader',
+  devId: 'node_js_lib'
+}
+
+
+
 io.on('connection', function(socket) {
   console.info('a user connected');
 
@@ -118,7 +146,7 @@ io.on('connection', function(socket) {
       delete connections[socket.id];
     }
 
-    var conn = new GateConnector(externalToken, function() {
+    var conn = new BiomioNode(externalToken, gateOptions, function() {
 
       conn.user_exists(function(exists) {
         console.info('user exists ', exists);
