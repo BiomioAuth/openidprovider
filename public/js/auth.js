@@ -48,7 +48,7 @@ var App = (function() {
           break;
         case 'completed':
           hideTimer();
-          showMessage(response.msg + '<br> You will be returned back to site');
+          showMessage(response.msg);
           redirect();
           break;
         case 'in_progress':

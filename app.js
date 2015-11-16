@@ -119,7 +119,7 @@ var gateOptions = {
   gateURL: config.gate.websocketUrl,
   appId: config.appId,
   appKey: privateKey,
-  appType: 'extension', // probe | extension
+  appType: 'extension', // probe | extension | hybrid
   onTry: function(data) {
     console.info('onTry ', data);
     return ["true"];
