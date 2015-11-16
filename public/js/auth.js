@@ -44,7 +44,7 @@ var App = (function() {
       switch(response.status) {
         case 'error':
           hideTimer();
-          showMessage(response.msg + '<br> <a href="#" onclick="App.tryAgain();" class="btn btn-default btn-sm"> Try again</a>');
+          showMessage(response.msg + ' <a href="#" onclick="App.tryAgain();" class="btn btn-default btn-sm"> Try again</a>');
           break;
         case 'completed':
           hideTimer();
@@ -97,9 +97,9 @@ var App = (function() {
 
   var register = function() {
     if (flow === 'token') {
-      showMessage('You are not registered, please register first. <br> <a href="' + registerUrl + '" class="btn btn-primary btn-sm">Register</a>');
+      showMessage('You are not registered. <a href="' + registerUrl + '" class="btn btn-default btn-sm">Register</a>');
     } else {
-      showMessage('You are not registered, please register first. <br> <a href="' + registerUrl + '" class="btn btn-primary btn-sm">Register</a>  <a href="#" onclick="App.tryAgain();return false;" class="btn btn-primary btn-sm">Try another email</a>');
+      showMessage('You are not registered. <a href="' + registerUrl + '" class="btn btn-default btn-sm">Register</a>  <a href="#" onclick="App.tryAgain();return false;" class="btn btn-primary btn-sm">Try another email</a>');
     }
   };
 
@@ -135,7 +135,7 @@ var App = (function() {
       if (diff <= 0) {
         start = Date.now() + 1000;
         hideTimer();
-        showMessage('Time is out! Need more time? <br/> <a href="#" onclick="App.tryAgain();" class="btn btn-default btn-sm"> Try again</a>');
+        showMessage('Time is out! Need more time? <a href="#" onclick="App.tryAgain();" class="btn btn-default btn-sm"> Try again</a>');
       }
     };
 
@@ -145,7 +145,7 @@ var App = (function() {
 
   var hideTimer = function () {
     clearInterval(timerInstance);
-    $timer.text('').hide();
+    $timer.text('00:00'); //.hide();
   };
 
   var showMessage = function(message) {

@@ -436,57 +436,74 @@ th {
   font-family: 'Roboto', sans-serif;;
 }
 
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  height: 100%;
+}
+
 #auth {
-  min-width: 570px;
+  width: 400px;
+  margin: auto;
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
 }
 
 #auth h1 {
-  margin: 32px 0 17px;
-  color: #fa7c5c;
-  font-size: 48px;
-  font-weight: 400;
+  margin: auto;
+  color: #ffffff;
+  background-color: #fa7c5c;
+  font-size: 30px;
+  line-height: 66px;
+  font-weight: 300;
   text-align: center;
+  width: 400px;
+  height: 66px;
 }
 
 #timer {
   width: 250px;
-  height: 115px;
-  margin: 0 auto;
-  border-radius: 25px;
-  background-color: #64697d;
-  color: #ffffff;
-  font-size: 68px;
-  line-height: 115px;
-  font-weight: bold;
+  margin: 35px auto 0;
+  color: #64697d;
+  font-size: 64px;
+  line-height: 64px;
+  font-weight: 700;
   text-align: center;
 }
 
 .message__holder {
   position: relative;
-  width: 570px;
-  height: 420px;
-  margin: 0 auto;
-  background-image: url("../auth.png");
+  width: 100%;
+  height: 170px;
+  margin: 25px auto;
+  background: url("../auth.png") no-repeat center center;
 }
 
 #message {
-  width: 300px;
-  height: 200px;
+  width: 260px;
   position: absolute;
-  top: 90px;
-  left: 62px;
-  padding: 20px 30px;
+  top: 48px;
+  left: 30px;
+  padding: 17px 20px;
   color: #64697d;
-  font-size: 29px;
+  font-size: 18px;
   font-weight: 400;
 }
 
 .footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
   width: 100%;
-  height: 70px;
+  height: 50px;
   background-color: #fa7c5c;
   color: #ffffff;
   font-weight: 100;
@@ -494,9 +511,11 @@ th {
 
 .footer__logo {
   float: left;
-  margin: 17px 30px;
+  margin: 13px 20px;
 }
 
 .footer__text {
-  margin: 15px 30px 5px 285px;
+  margin: 0;
+  padding: 8px 0;
+  font-size: 12px;
 }

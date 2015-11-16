@@ -1,24 +1,22 @@
 <div id="auth">
     <h1>Authorizing</h1>
-    <div class="row">
-        <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
-            <div class="form-group">
-                <div class="col-sm-10">
-                    <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{url}}">
-                    <input type="hidden" class="form-control" name="token" id="token" value="{{externalToken}}">
-                </div>
+    <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
+        <div class="form-group">
+            <div class="col-sm-10">
+                <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{url}}">
+                <input type="hidden" class="form-control" name="token" id="token" value="{{externalToken}}">
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 
-    <div class="row">
+    <div>
         <div id="timer"></div>
         <div class="message__holder">
             <div id="message"></div>
-            <div class="footer">
-                <img class="footer__logo" src="logo-text.png" alt="biomio logo" title="" />
-                <p class="footer__text">Multi-Factor, Password-Optional Authentication Anywhere, Everywhere</p>
-            </div>
+        </div>
+        <div class="footer">
+            <img class="footer__logo" src="footer-logo.png" alt="biomio logo" title="" />
+            <p class="footer__text">Multi-Factor, Password-Optional Authentication Anywhere, Everywhere</p>
         </div>
     </div>
 
