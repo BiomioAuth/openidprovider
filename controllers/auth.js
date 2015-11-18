@@ -24,9 +24,9 @@ var validateFail = function (err, req, res, next) {
 
 var logout = function(req, res, next) {
   return function(req, res, next) {
-    req.session.destroy();
-
-    //res.redirect('/');
+    //req.session.destroy();
+    //
+    ////res.redirect('/');
   }
 };
 

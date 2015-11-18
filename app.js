@@ -207,6 +207,8 @@ app.get('/login', auth.login());
 app.all('/logout', auth.logout(), function(req, res) {
   sessionStore.destroy(req.session.id, function (error, sess) {
     console.info('session destroy: ', error, sess);
+    req.session.destroy();
+    res.redirect('/');
   });
 });
 
