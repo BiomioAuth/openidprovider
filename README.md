@@ -2,7 +2,7 @@
 
 ## Install
 
-- Create file *.env* from *.env.example*
+- Create file *.env* from *.env.example* and update configuration in it
 
 - `npm install` - it runs npm & bower install
 
@@ -13,11 +13,17 @@
 
 ## Run in production
 
-- `sudo nf export -o /etc/init` - it install upstart scripts, run this only once!
+- `sudo nf export -o /etc/init -a openidprovider -l /home/biomio/openid/logs` - it install upstart scripts, run this only once!
 
-- `sudo start foreman`
+- `sudo start openidprovider` - start service
 
-- `tail -f /var/log/foreman/web-1.log` - logs
+- `sudo status openidprovider` - status of service
+
+- `sudo restart openidprovider` - restart service
+
+- `sudo stop openidprovider` - stop service
+
+- `tail -f /home/biomio/openid/logs/openidprovider/web-1.log` - logs
 
 
 ## Useful commands
