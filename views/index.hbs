@@ -3,20 +3,13 @@
       <h1 class="text-center">OpenID provider</h1>
 
       {{#if user}}
-          <p>{{user}}</p>
-        <div class="btn btn-primary btn-block" onclick="logout();">Logout</div>
+        <p class="text-center">{{user}}</p>
+        <p>&ndsp;</p>
+        <form action="/logout" method="POST">
+        <button type="submit" class="btn btn-primary btn-block" value="submit">Logout</button>
+        </form>
       {{else}}
         <p class="text-center">You are not logged in!</p>
       {{/if}}
     </div>
 </div>
-
-<script>
-
-    function logout() {
-        Cookies.remove('connect.sid', {path: '/'});
-        location.href = location.pathname;
-    };
-
-
-</script>
