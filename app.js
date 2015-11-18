@@ -204,7 +204,7 @@ app.get('/', function(req, res) {
 app.get('/login', auth.login());
 
 //app.all('/logout', oidc.removetokens(), auth.logout(), function(req, res)
-app.all('/logout', auth.logout(), function(req, res) {
+app.all('/logout', function(req, res) {
   sessionStore.destroy(req.session.id, function (error, sess) {
     console.info('session destroy: ', error, sess);
     req.session.destroy();
