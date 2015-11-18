@@ -4,9 +4,19 @@
 
       {{#if user}}
           <p>{{user}}</p>
-        <div class="btn btn-primary btn-block">Logout</div>
+        <div class="btn btn-primary btn-block" onclick="logout();">Logout</div>
       {{else}}
         <p class="text-center">You are not logged in!</p>
       {{/if}}
     </div>
 </div>
+
+<script>
+
+    function logout() {
+        Cookies.remove('connect.sid', {path: '/'});
+        location.href = location.pathname;
+    };
+
+
+</script>
