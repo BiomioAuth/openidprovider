@@ -1,11 +1,12 @@
 <div class="row">
-    <h1 class="text-center">OpenID provider</h1>
+    <div class="well center-block user--status">
+      <h1 class="text-center">OpenID provider</h1>
 
-<!--    <ul class="list-group col-sm-offset-4 col-sm-4">
-        <li class="list-group-item"><a href="/user/create">Register new user</a></li>
-        <li class="list-group-item"><a href="/login">Login</a></li>
-        <li class="list-group-item"><a href="/client">Clients</a></li>
-        <li class="list-group-item"><a href="/client/register">Register new client</a></li>
-        <li class="list-group-item"><a href="/test/clear">Test</a></li>
-    </ul>-->
+      {{#if user}}
+          <p>{{user}}</p>
+        <div class="btn btn-primary btn-block">Logout</div>
+      {{else}}
+        <p class="text-center">You are not logged in!</p>
+      {{/if}}
+    </div>
 </div>

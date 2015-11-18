@@ -448,8 +448,13 @@ body {
 
 .container {
   height: 100%;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
+}
+
+.user--status {
+  width: 300px;
+  margin: 10% auto;
 }
 
 #auth {
@@ -476,6 +481,7 @@ body {
 
 #timer {
   width: 250px;
+  height: 64px;
   margin: 35px auto 0;
   color: #64697d;
   font-size: 64px;

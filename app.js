@@ -2,15 +2,14 @@ var express = require('express');
 var expressSession = require('express-session');
 var http = require('http');
 var path = require('path');
+var cors = require('cors');
 var cookie = require('cookie');
+var cookieParser = require('cookie-parser');
 var querystring = require('querystring');
 var rs = require('connect-redis')(expressSession);
 var extend = require('extend');
-var logger = require('morgan');
 var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
 var errorHandler = require('errorhandler');
-var methodOverride = require('method-override');
 var _ = require('lodash');
 var favicon = require('serve-favicon');
 var fs = require('fs');
@@ -60,9 +59,7 @@ var options = {
   app: app
 };
 
-var oidc = require('./openid-connect').oidc(options);
-
-app.set('port', process.env.PORT || 5000);
+var oidc = require('./services/openid-connect').oidc(options);
 
 if ('development' == app.get('env')) {
   app.use(errorHandler());
@@ -74,12 +71,11 @@ app.engine('.hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
 app.set('view engine', '.hbs');
 
 /* set middlewares */
-app.use(logger('dev'));
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(favicon(__dirname + '/public/favicon.ico'));
-app.use(methodOverride());
 app.use(cookieParser(config.session.secret));
 
 var sessionStore = new rs(config.redis);
@@ -94,19 +90,9 @@ var sessionMiddleware = expressSession({
 
 app.use(sessionMiddleware);
 
-
-/** Enable CORS */
-app.use(function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  //res.header('Access-Control-Allow-Credentials', "true");
-  next();
-});
+app.set('port', process.env.PORT || 5000);
 
 server.listen(app.get('port'));
-
-
 
 try {
   var privateKey = fs.readFileSync(__dirname + "/private.key").toString();
@@ -130,7 +116,6 @@ var gateOptions = {
   headerOid: 'clientHeader',
   devId: 'node_js_lib'
 }
-
 
 
 io.on('connection', function(socket) {
@@ -211,12 +196,12 @@ io.on('connection', function(socket) {
 });
 
 app.get('/', function(req, res) {
-  res.render('index', {});
+  console.info(req.session);
+  var user = req.session.user || null;
+  res.render('index', {user: user});
 });
 
 app.get('/login', auth.login());
-
-//app.post('/login', oidc.login(auth.validate), auth.validateSuccess, auth.validateFail);
 
 app.all('/logout', oidc.removetokens(), auth.logout());
 
@@ -237,9 +222,5 @@ app.get('/user/create', user.createForm());
 
 /** Client routes */
 app.get('/client/register', oidc.use('client'), client.registerForm());
-app.post('/client/register', oidc.use('client'), client.registerAction());
 
-/*
-app.get('/client', oidc.use('client'), client.get);
-app.get('/client/:id', oidc.use('client'), client.getAll);
-*/
+app.post('/client/register', oidc.use('client'), client.registerAction());
