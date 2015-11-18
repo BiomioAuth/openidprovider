@@ -9,7 +9,7 @@ module.exports = {
     cookie: "connect.sid"
   },
   gate: {
-    websocketUrl: "wss://gate.biom.io:8090/websocket"
+    websocketUrl: process.env.GATE_URL
   },
   appId: "32ec6214f5b17ecf769d9d2a6c179742",
   resources: [
