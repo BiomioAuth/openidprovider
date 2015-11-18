@@ -11,7 +11,7 @@ module.exports = {
   gate: {
     websocketUrl: process.env.GATE_URL
   },
-  appId: "32ec6214f5b17ecf769d9d2a6c179742",
+  appId: "c627a2be0296339ba9341fc919dcd8c6",
   resources: [
     {
       rProperties: "",
