@@ -30,10 +30,10 @@ var registerForm = function(req, res, next) {
 var registerAction = function(req, res, next) {
   return function(req, res, next) {
     delete req.session.error;
-    req.body.key = req.session.register_client.key;
-    req.body.secret = req.session.register_client.secret;
-    req.body.user = req.session.user;
-    req.body.redirect_uris = req.body.redirect_uris.split(/[, ]+/);
+    req.body.key = '56ce9a6a93c17d2c867c5c293482b8f9';
+    req.body.secret = '85a879a19387afe791039a88b354a374';
+    req.body.user = 'rjhdsy@gmail.com';
+    req.body.redirect_uris = 'https://biom.io/login.php';
 
     req.model.client.create(req.body, function (err, client) {
       if (!err && client) {

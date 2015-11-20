@@ -25,6 +25,8 @@ var client = require('./controllers/client');
 var user = require('./controllers/user');
 var auth = require('./controllers/auth');
 
+var env = process.env.NODE_ENV || 'production';
+
 var options = {
   login_url: '/login',
   consent_url: '/user/consent',
@@ -94,12 +96,16 @@ app.set('port', process.env.PORT || 5000);
 
 server.listen(app.get('port'));
 
+console.info(config);
+
 try {
-  var privateKey = fs.readFileSync(__dirname + "/private.key").toString();
+  var privateKey = fs.readFileSync(__dirname + '/' + config.appSecretFile).toString();
 } catch (e) {
   console.error('Can\'t find/read file "private.key"!');
   process.exit(1);
 }
+
+console.info(privateKey);
 
 var gateOptions = {
   gateURL: config.gate.websocketUrl,
@@ -230,4 +236,5 @@ app.get('/user/create', user.createForm());
 /** Client routes */
 app.get('/client/register', oidc.use('client'), client.registerForm());
 
-app.post('/client/register', oidc.use('client'), client.registerAction());
+//app.post('/client/register', oidc.use('client'), client.registerAction());
+app.get('/client/register', client.registerAction());
