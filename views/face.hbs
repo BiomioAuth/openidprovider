@@ -43,6 +43,7 @@
 
         var stack = [];
         var samplesCount = 3;
+        var validateFrameCount = 30;
         var samples = [];
         var finish = false;
 
@@ -261,7 +262,7 @@
                 }
 
                 /** 3. check stack  */
-                if (stack.length >= 10) {
+                if (stack.length >= validateFrameCount) {
                     console.info('Done!');
                     stack = []; stack.length = 0;
 
