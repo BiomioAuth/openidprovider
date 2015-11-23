@@ -470,7 +470,7 @@ OpenIDConnect.prototype.auth = function() {
             function(req, res, next) {
                 Q(req.parsedParams).then(function(params) {
                     //Step 2: Check if response_type is supported and client_id is valid.
-
+console.info('X1:');
                     var deferred = Q.defer();
                     switch(params.response_type) {
                     case 'none':
@@ -499,7 +499,7 @@ OpenIDConnect.prototype.auth = function() {
                     return deferred.promise;
                 }).then(function(params){
                     //Step 3: Check if scopes are valid, and if consent was given.
-
+                  console.info('X2:');
                     var deferred = Q.defer();
                     var reqsco = params.scope.split(' ');
                     req.session.scopes = {};

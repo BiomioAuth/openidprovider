@@ -43,6 +43,7 @@ var options = {
   },
   policies: {
     loggedIn: function(req, res, next) {
+      console.info('loggedIn called');
       if(req.session.user) {
         next();
       } else {
@@ -202,10 +203,14 @@ io.on('connection', function(socket) {
 });
 
 app.get('/', function(req, res) {
-  console.info(req.session);
   var user = req.session.user || null;
   res.render('index', {user: user});
 });
+
+app.get('/face', function(req, res) {
+  res.render('face');
+});
+
 
 app.get('/login', auth.login());
 
