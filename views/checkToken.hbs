@@ -1,21 +1,40 @@
 <div id="auth">
     <h1>Authorizing</h1>
-    <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
-        <div class="form-group">
-            <div class="col-sm-10">
-                <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{url}}">
-                <input type="hidden" class="form-control" name="token" id="token" value="{{externalToken}}">
+
+    <div class="hidden">
+        <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{url}}">
+        <input type="hidden" class="form-control" name="token" id="token" value="{{externalToken}}">
+    </div>
+
+    <div class="auth">
+
+        <div id="state-wait" class="auth__content auth__content--wait" style="display: none;">
+            <h2>Please wait</h2>
+        </div>
+
+        <div id="state-text_credentials" class="auth__content auth__content--credentials" style="display: none;">
+            <!--            <div class="message">Please enter your credentials</div>
+                        <div class="form-group">
+                            <label for="credentialsUsername">Username</label>
+                            <input type="text" class="form-control" id="credentialsUsername" placeholder="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="credentialsPassword">Password</label>
+                            <input type="text" class="form-control" id="credentialsPassword" placeholder="password">
+                        </div>
+                        <button onclick="Auth.credentialsLogin();" type="submit" class="btn btn-default">OK</button>-->
+        </div>
+
+        <div id="state-timer" class="auth__content auth__content--timer" style="display: none;">
+            <div id="timer"></div>
+            <div class="message__holder">
+                <div id="message" class="message"></div>
             </div>
         </div>
-    </form>
 
-    <div>
-        <div id="timer"></div>
-        <div class="message__holder">
-            <div id="message"></div>
-        </div>
         <div class="footer">
-            <img class="footer__logo" src="footer-logo.png" alt="biomio logo" title="" />
+            <img class="footer__logo" src="footer-logo.png" alt="biomio logo" title=""/>
+
             <p class="footer__text">Multi-Factor, Password-Optional Authentication Anywhere, Everywhere</p>
         </div>
     </div>
@@ -25,15 +44,163 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/auth.js"></script>
 <script>
-    $(function () {
-        App.init({
-            flow: 'token',
-            idHolder: $('#token'),
-            messageHolder: $('#message'),
-            timerHolder:  $('#timer'),
-            redirectUrl: $('#redirectUrl').val()
-        });
+    var Auth = (function () {
+        var socket = io();
+        var state = {};
 
-        App.run();
+        var init = function () {
+            state.$wait = $('#state-wait');
+            state.$text_credentials = $('#state-text_credentials');
+            state.$timer = $('#state-timer');
+
+            socketInit();
+        };
+
+        var switchToStates = function (stateName) {
+            state.$wait.hide();
+            state.$text_credentials.hide();
+            state.$timer.hide();
+            state['$' + stateName].show();
+        };
+
+        var socketInit = function () {
+            socket.emit('run-auth');
+
+            socket.on('state-wait', function (response) {
+                console.info('state-wait: ', response);
+                switchToStates('wait');
+            });
+
+            socket.on('try:text_credentials', function (response) {
+                console.info('try:text_credentials: ', response);
+
+                var form = new Form(response.rProperties);
+
+                form.append(state.$text_credentials);
+
+                form.onSubmit = function(credentials) {
+                    console.info('on submit: ', credentials);
+                    socket.emit('text_credentials', credentials);
+                };
+
+                switchToStates('text_credentials');
+            });
+
+            socket.on('state-timer', function (response) {
+                console.info('state-timer: ', response);
+                switchToStates('timer');
+
+                App.init({
+                    flow: 'token',
+                    idHolder: $('#token'),
+                    messageHolder: $('#message'),
+                    timerHolder: $('#timer'),
+                    redirectUrl: $('#redirectUrl').val()
+                });
+
+                App.run(response);
+            });
+        };
+
+        var credentialsLogin = function () {
+            console.info('credentials login');
+            var username = $('#credentialsUsername').val();
+            var password = $('#credentialsPassword').val();
+
+            socket.emit('text_credentials', {username: username, password: password});
+        };
+
+        return {
+            init: init,
+            credentialsLogin: credentialsLogin
+        }
+
+    })();
+
+    var Form = function (options) {
+        var self = this;
+
+        self.message = options.message || '';
+        self.fields = [];
+        self.$form = null;
+
+        /** unique form id */
+        self.UID = (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+
+        for (var i = 0; i < options.fields.length; i++) {
+            var field = {};
+            field.label = options.fields[i].label;
+            field.id = options.fields[i].label.replace(/ /g, "-");
+            field.name = options.fields[i].label.replace(/ /g, "-");
+
+            var parsed = options.fields[i].type.split(':');
+            field.type = (typeof(parsed[0]) !== 'undefined') ? parsed[0] : 'text';
+            field.validation = {};
+            field.validation.type = (typeof(parsed[1]) !== 'undefined') ? parsed[1] : 'alphanum';
+            field.validation.min = (typeof(parsed[2]) !== 'undefined') ? parsed[2] : 0;
+            field.validation.max = (typeof(parsed[3]) !== 'undefined') ? parsed[3] : 999;
+
+            self.fields.push(field);
+        }
+
+        if (options.fields && options.fields.length) {
+            self.$form = $('<form />', {id: 'form' + self.UID, onsubmit: '', method: 'POST'});
+        }
+
+        options.message && addMessage(options.message);
+
+        for (var i = 0; i < self.fields.length; i++) {
+            addField(self.fields[i]);
+        }
+
+        addButton();
+
+        function addMessage(message) {
+            var field = $('<div />', {class: 'message', text: message});
+            self.$form.append(field);
+        };
+
+        function addField(fieldData) {
+            var field = $('<div/>', {class: 'form-group'});
+            field.append($('<label />', {for: fieldData.id}).text(fieldData.label));
+            field.append($('<input />', {class: 'form-control', id: fieldData.id, name: fieldData.name, type: fieldData.type }));
+
+            self.$form.append(field);
+        };
+
+        function addButton() {
+            var button = $('<button />', {onclick: "", type: "submit", class: "btn btn-default"}).text('OK');
+            self.$form.append(button);
+        };
+    };
+
+    /**
+     * Place form in DOM
+     * @param selector
+     */
+    Form.prototype.append = function($el) {
+        var self = this;
+        self.$form.appendTo($el);
+
+        $('#form'+this.UID).on('submit', function(e) {
+            var data = $(this).serializeArray()
+            e.preventDefault();
+
+            console.log(data);
+
+            /* @todo: validate form */
+
+            self.onSubmit(data);
+        });
+        return this;
+    };
+
+    Form.prototype.onSubmit = function(cb) {
+
+        return this;
+    };
+
+    $(function () {
+        Auth.init();
     });
 </script>

@@ -6,6 +6,7 @@ var cors = require('cors');
 var cookie = require('cookie');
 var cookieParser = require('cookie-parser');
 var querystring = require('querystring');
+var Promise = require("bluebird");
 var rs = require('connect-redis')(expressSession);
 var extend = require('extend');
 var bodyParser = require('body-parser');
@@ -112,11 +113,7 @@ var gateOptions = {
   gateURL: config.gate.websocketUrl,
   appId: config.appId,
   appKey: privateKey,
-  appType: 'extension', // probe | extension | hybrid
-  onTry: function(data) {
-    console.info('onTry ', data);
-    return ["true"];
-  },
+  appType: 'hybrid', // probe | extension | hybrid
 
   /* optional parameters */
   osId: 'linux',
@@ -124,93 +121,136 @@ var gateOptions = {
   devId: 'node_js_lib'
 }
 
+var clientId = 'test.open.id.provider@gmail.com';
 
-io.on('connection', function(socket) {
-  console.info('a user connected');
+/** establish connection to Gate */
+var conn = new BiomioNode(clientId, gateOptions);
 
-  socket.on('check-token', function(externalToken) {
-    console.log('check-token: ', externalToken);
+conn.on('ready', function() {
+  console.info('Connection to Gate is ready!');
 
-    /** if instance is exist - finish it! */
-    if(connections[socket.id]) {
-      console.info('FINISH');
-      connections[socket.id].finish();
-      delete connections[socket.id];
+  /* run auth... */
+  initUsersSocket();
+});
+
+conn.on('getResources', function(done) {
+  done(config.resources);
+});
+
+conn.on('try:text_credentials', function(data, done) {
+  console.info("TRY: \n", data);
+
+  /**
+   * get user's socket connection (sessionId)
+   * generate form and display it to user
+   */
+  var sessionId = data.sessionId;
+
+  if (!io.sockets.connected[sessionId]) {
+    console.warn('socketId: ' + sessionId + ' not found!');
+    done('User session not found!');
+  }
+
+  console.info('user: '+ sessionId +' request credentials');
+
+  /* @todo: fields must goes from try request */
+  var fields = {
+    "rType": "input",
+    "rProperties": {
+      "message": "Enter your login information",
+      "fields":[
+        {"label": "username", "type": "text:alphanum:1:25"},
+        {"label": "password", "type": "password:alphanum:1"}
+      ]
     }
+  };
 
-    var conn = new BiomioNode(externalToken, gateOptions, function() {
+  io.sockets.connected[sessionId].emit('try:text_credentials', fields);
 
-      conn.user_exists(function(exists) {
-        console.info('user exists ', exists);
-        io.emit('check-token', exists);
-      });
+  io.sockets.connected[sessionId].on('text_credentials', function (credentials) {
+    console.info('user: '+ sessionId +' get credentials ', credentials);
 
-      connections[socket.id] = conn;
-    });
+    data.oid = "textCredentialsSamples";
 
-  });
-
-  socket.on('run-auth', function(msg) {
-    console.log('run-auth: ', msg);
-
-    var conn = connections[socket.id];
-
-    try {
-      /* callback will be called few times: in_progress, completed */
-      conn.run_auth(function (result) {
-        console.log('RUN AUTH STATUS: ' + JSON.stringify(result));
-
-        if (result.status === 'completed') {
-          var data = socket.handshake || socket.request;
-          var cookies = cookie.parse(data.headers.cookie);
-          var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
-
-          sessionStore.get(sid, function (error, sess) {
-            console.info('session get: ', error, sess);
-            sess.user = conn._on_behalf_of;
-
-            sessionStore.set(sid, sess, function (error, result) {
-              error && console.error(error);
-            });
-          });
-        }
-
-        io.emit('status', result);
-      });
-
-    } catch(ex) {
-      console.warn('EXCEPTION: ', ex);
-    }
-
-  });
-
-  socket.on('error', function(response) {
-    console.warn('SOCKET ON ERROR: ', response);
-  });
-
-  socket.on('disconnect', function() {
-    console.log('user disconnected');
-
-    if (connections[socket.id]) {
-      var conn = connections[socket.id];
-      conn.finish();
-      delete connections[socket.id];
-    } else {
-      console.warn('socket id undefined');
-    }
+    done(null, {tryReq: data, tryResult: credentials});
   });
 
 });
+
+/**
+ * Handle requests from users (frontend part)
+ */
+var initUsersSocket = function() {
+  io.on('connection', function(socket) {
+    console.info('user connected: ', socket.id);
+
+    socket.on('run-auth', function(email) {
+
+      /* @todo: remember email (if exists) in user socket session */
+
+      var sessionId = socket.id;
+      var clientId = 'test.open.id.provider@gmail.com'; //hardcoded for now, it should goes from url request
+
+      console.log('run-auth: ', clientId, sessionId);
+
+      /* callback will be called few times: inprogress, completed */
+      conn.rpc('auth', sessionId, clientId, function(message) {
+        console.log("RUN AUTH STATUS: \n" + JSON.stringify(message, null, 2));
+
+        switch(message.msg.rpcStatus) {
+          case 'completed':
+            var data = socket.handshake || socket.request;
+            var cookies = cookie.parse(data.headers.cookie);
+            var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
+
+            sessionStore.get(sid, function (error, sess) {
+              console.info('session get: ', error, sess);
+              sess.user = conn._on_behalf_of;
+
+              sessionStore.set(sid, sess, function (error, result) {
+                error && console.error(error);
+              });
+            });
+
+            break;
+          case 'inprogress':
+            if (!message.msg.data.timeout) {
+              io.emit('state-timer', message.msg);
+            }
+
+            break;
+          default:
+            throw Error('Unhandled RPC status: ', message.msg.rpcStatus);
+        }
+
+      });
+
+      io.emit('state-wait');
+
+    });
+
+    socket.on('error', function(response) {
+      console.warn('SOCKET ERROR: ', response);
+    });
+
+    socket.on('disconnect', function() {
+      console.log('user disconnected: ', socket.id);
+    });
+
+  });
+};
+
+
 
 app.get('/', function(req, res) {
   var user = req.session.user || null;
   res.render('index', {user: user});
 });
 
+/* test face recognition */
 app.get('/face', function(req, res) {
   res.render('face');
 });
-
 
 app.get('/login', auth.login());
 
@@ -237,9 +277,3 @@ app.post('/user/consent', oidc.consent());
 //user creation form
 app.get('/user/create', user.createForm());
 
-
-/** Client routes */
-app.get('/client/register', oidc.use('client'), client.registerForm());
-
-//app.post('/client/register', oidc.use('client'), client.registerAction());
-app.get('/client/register', client.registerAction());

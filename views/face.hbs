@@ -86,6 +86,7 @@
                     video.play();
                 }, 500);
             }, function (error) {
+                console.info('compatibility error: ', error);
                 $('#canvas').hide();
                 $('#log').hide();
                 $('#no_rtc').html('<h4>WebRTC not available.</h4>');

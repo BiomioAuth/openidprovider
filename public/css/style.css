@@ -479,10 +479,39 @@ body {
   height: 66px;
 }
 
+
+.auth__content {
+  min-height: 319px;
+}
+
+.auth__content--wait > h2 {
+  font-size: 36px;
+  text-align: center;
+  color: #64697d;
+  font-family: 'Roboto', sans-serif;
+  position: absolute;
+  top: 120px;
+  width: 100%;
+}
+.auth__content--email,
+.auth__content--credentials {
+  padding: 25px;
+}
+
+.auth__content--timer {
+  padding: 35px 25px 25px 25px;
+}
+
+.auth__content--email .message,
+.auth__content--credentials .message {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
 #timer {
   width: 250px;
   height: 64px;
-  margin: 35px auto 0;
+  margin: 0 auto;
   color: #64697d;
   font-size: 64px;
   line-height: 64px;
@@ -504,6 +533,9 @@ body {
   top: 48px;
   left: 30px;
   padding: 17px 20px;
+}
+
+.message {
   color: #64697d;
   font-size: 18px;
   font-weight: 400;
