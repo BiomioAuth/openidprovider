@@ -137,7 +137,7 @@ conn.on('getResources', function(done) {
   done(config.resources);
 });
 
-conn.on('try:text_credentials', function(data, done) {
+conn.on('try:text_input', function(data, done) {
   console.info("TRY: \n", data);
 
   /**
@@ -149,30 +149,29 @@ conn.on('try:text_credentials', function(data, done) {
   if (!io.sockets.connected[sessionId]) {
     console.warn('socketId: ' + sessionId + ' not found!');
     done('User session not found!');
+    return;
+
   }
 
   console.info('user: '+ sessionId +' request credentials');
 
-  /* @todo: fields must goes from try request */
   var fields = {
-    "rType": "input",
-    "rProperties": {
-      "message": "Enter your login information",
-      "fields":[
-        {"label": "username", "type": "text:alphanum:1:25"},
-        {"label": "password", "type": "password:alphanum:1"}
-      ]
-    }
+    rProperties: JSON.parse(data.resource.rProperties),
+    rType: data.resource.rType
   };
 
-  io.sockets.connected[sessionId].emit('try:text_credentials', fields);
+  io.sockets.connected[sessionId].emit('try:text_input', fields);
 
-  io.sockets.connected[sessionId].on('text_credentials', function (credentials) {
+  io.sockets.connected[sessionId].on('text_input', function (credentials) {
     console.info('user: '+ sessionId +' get credentials ', credentials);
 
-    data.oid = "textCredentialsSamples";
+    /** reformat data: [{field: '', value},{...}] */
+    for (var i=0; i < credentials.length; i++) {
+      credentials[i]['field'] = credentials[i]['name'];
+      delete credentials[i]['name'];
+    }
 
-    done(null, {tryReq: data, tryResult: credentials});
+    done(null, credentials);
   });
 
 });

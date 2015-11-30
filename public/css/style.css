@@ -494,7 +494,7 @@ body {
   width: 100%;
 }
 .auth__content--email,
-.auth__content--credentials {
+.auth__content--input {
   padding: 25px;
 }
 
@@ -503,7 +503,7 @@ body {
 }
 
 .auth__content--email .message,
-.auth__content--credentials .message {
+.auth__content--input .message {
   text-align: center;
   margin-bottom: 25px;
 }

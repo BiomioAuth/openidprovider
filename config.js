@@ -16,7 +16,7 @@ module.exports = {
   resources: [
     {
       rProperties: "",
-      rType: "user_input"
+      rType: "input"
     }
   ]
 }
