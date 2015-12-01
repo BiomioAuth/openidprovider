@@ -98,33 +98,6 @@
 
     })();
 
-
-    /**
-     * Place form in DOM
-     * @param selector
-     */
-    Form.prototype.append = function($el) {
-        var self = this;
-        self.$form.appendTo($el);
-
-        $('#form'+this.UID).on('submit', function(e) {
-            var data = $(this).serializeArray()
-            e.preventDefault();
-
-            console.log(data);
-
-            /* @todo: validate form */
-
-            self.onSubmit(data);
-        });
-        return this;
-    };
-
-    Form.prototype.onSubmit = function(data) {
-
-        return this;
-    };
-
     $(function () {
         Auth.init();
     });

@@ -20,7 +20,6 @@ var app = express();
 var server = http.Server(app);
 var io = require('socket.io')(server);
 
-var connections = {};
 var config = require('./config');
 var client = require('./controllers/client');
 var user = require('./controllers/user');
@@ -44,7 +43,7 @@ var options = {
   },
   policies: {
     loggedIn: function(req, res, next) {
-      console.info('loggedIn called');
+      //console.info('loggedIn called');
       if(req.session.user) {
         next();
       } else {
