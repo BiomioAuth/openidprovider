@@ -63,7 +63,7 @@ var Form = function (options) {
     var field = $('<div/>', {class: 'form-group'});
     field.append($('<label />', {for: fieldData.id}).text(fieldData.label));
     field.append($('<input />', {class: 'form-control', id: fieldData.id, name: fieldData.name, type: fieldData.type }));
-    field.append($('<p />', {class: 'text-danger'}));
+    field.append($('<div />', {class: 'text-danger'}));
 
     self.$form.append(field);
   };
@@ -190,7 +190,7 @@ Form.prototype.validate = function() {
   for(var i = 0; i < errors.length; i++) {
     var $field = errors[i].field;
     var message = errors[i].message;
-    $field.siblings('p').append(message);
+    $field.siblings('div.text-danger').append($('<div />').html(message));
   }
 
   return (errors.length > 0 ? false : true);
