@@ -52,7 +52,7 @@ var login = function(req, res, next) {
     }
 
     if (externalToken) {
-      res.render('checkToken', {
+      res.render('auth', {
         externalToken: externalToken,
         url: returnURL
       });

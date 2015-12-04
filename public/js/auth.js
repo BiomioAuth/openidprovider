@@ -10,28 +10,37 @@ var App = (function() {
   var $messageHolder;
   var $timer;
   var timerInstance;
+  var $element = null;
 
   var init = function(options) {
+    $element = options.$element;
+
     flow = options.flow === 'token' ? 'token' : 'email';
     $id = options.idHolder;
     redirectUrl = options.redirectUrl;
     $messageHolder = options.messageHolder;
     $timer = options.timerHolder;
 
-    initSocket();
+    initDOM();
+
+    setTimer(function() {
+      initSocket();
+    }, 1000)
+
+  };
+
+  var initDOM = function() {
+    var html = {};
+    html.timer = $("<div />", {id: "timer"});
+    html.holder = $("<div />", {class: "message__holder"})
+      .append("<div />", {id: "message", class: "message"});
+
+    $element
+      .append(html.timer)
+      .append(html.holder);
   };
 
   var initSocket = function() {
-    //socket.on('check-token', function (response) {
-    //  console.info('check-token: ', response);
-    //  if (response) {
-    //    console.info('run auth');
-    //    socket.emit('run-auth', $id.val());
-    //  } else {
-    //    register();
-    //  }
-    //});
-
     socket.on('status', function (response) {
       console.info('status: ', response);
 

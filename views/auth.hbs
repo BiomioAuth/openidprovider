@@ -8,31 +8,37 @@
 
     <div class="auth">
 
-        <div id="state-wait" class="auth__content auth__content--wait" style="display: none;">
-            <h2>Please wait</h2>
-        </div>
+        <div id="state-wait" class="auth__content auth__content--wait" style="display: none;"></div>
 
-        <div id="state-text_input" class="auth__content auth__content--input" style="display: none;"> </div>
+        <div id="state-text_input" class="auth__content auth__content--input" style="display: none;"></div>
 
-        <div id="state-timer" class="auth__content auth__content--timer" style="display: none;">
-            <div id="timer"></div>
-            <div class="message__holder">
-                <div id="message" class="message"></div>
-            </div>
-        </div>
+        <div id="state-face" class="auth__content--face" style="display: none;"></div>
+
+        <div id="state-timer" class="auth__content auth__content--timer" style="display: none;"></div>
 
         <div class="footer">
             <img class="footer__logo" src="footer-logo.png" alt="biomio logo" title=""/>
-
             <p class="footer__text">Multi-Factor, Password-Optional Authentication Anywhere, Everywhere</p>
         </div>
     </div>
 
 
 </div>
+
 <script src="/socket.io/socket.io.js"></script>
+
+<!-- face -->
+<script type="text/javascript" src="js/jsfeat/jsfeat-min.js"></script>
+<script type="text/javascript" src="js/jsfeat/frontalface.js"></script>
+<script type="text/javascript" src="js/jsfeat/compatibility.js"></script>
+<script type="text/javascript" src="js/jsfeat/profiler.js"></script>
+<script type="text/javascript" src="js/jsfeat/dat.gui.min.js"></script>
+
+<!-- custom -->
 <script src="/js/auth.js"></script>
 <script src="/js/form.js"></script>
+<script src="/js/face.js"></script>
+
 <script>
     var Auth = (function () {
         var socket = io();
@@ -42,14 +48,16 @@
             state.$wait = $('#state-wait');
             state.$text_input = $('#state-text_input');
             state.$timer = $('#state-timer');
+            state.$face = $('#state-face');
 
             socketInit();
         };
 
-        var switchToStates = function (stateName) {
+        var switchToState = function (stateName) {
             state.$wait.hide();
             state.$text_input.hide();
             state.$timer.hide();
+            state.$face.hide();
             state['$' + stateName].show();
         };
 
@@ -58,7 +66,10 @@
 
             socket.on('state-wait', function (response) {
                 console.info('state-wait: ', response);
-                switchToStates('wait');
+                new Wait({
+                    $element: state.$wait
+                });
+                switchToState('wait');
             });
 
             socket.on('try:text_input', function (response) {
@@ -68,19 +79,35 @@
 
                 form.append(state.$text_input);
 
-                form.onSubmit = function(credentials) {
+                form.onSubmit = function (credentials) {
                     console.info('on submit: ', credentials);
                     socket.emit('text_input', credentials);
                 };
 
-                switchToStates('text_input');
+                switchToState('text_input');
+            });
+
+            socket.on('try:face', function (response) {
+                console.info('try:face: ', response);
+//                response.rProperties
+
+                switchToState('face');
+
+                var face = new Face({
+                    debug: true,
+                    $element: state.$face,
+                    samplesCount: 3,
+                    validateFrameCount: 10
+                });
+
             });
 
             socket.on('state-timer', function (response) {
                 console.info('state-timer: ', response);
-                switchToStates('timer');
+                switchToState('timer');
 
                 App.init({
+                    $element: state.$timer,
                     flow: 'token',
                     idHolder: $('#token'),
                     messageHolder: $('#message'),
@@ -98,7 +125,22 @@
 
     })();
 
+    var Wait = function (params) {
+        "use strict";
+
+        var self = this;
+        self.$element = params.$element;
+
+        /** init DOM structure */
+        var html = {};
+        html.title = $("<h2/>").html('Please wait');
+        self.$element.append(html.title);
+
+    }
+
+
     $(function () {
         Auth.init();
     });
+
 </script>

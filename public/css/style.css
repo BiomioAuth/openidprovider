@@ -498,6 +498,10 @@ body {
   padding: 25px;
 }
 
+.auth__content--face {
+  position: relative;
+}
+
 .auth__content--timer {
   padding: 35px 25px 25px 25px;
 }

@@ -30,10 +30,6 @@ var env = process.env.NODE_ENV || 'production';
 var options = {
   login_url: '/login',
   consent_url: '/user/consent',
-  scopes: {
-    foo: 'Access to foo special resource',
-    bar: 'Access to bar special resource'
-  },
   connections: {
     def: {
       adapter: 'redis',
@@ -136,6 +132,12 @@ conn.on('getResources', function(done) {
   done(config.resources);
 });
 
+conn.on('try:face', function(data, done) {
+  console.info("TRY: \n", data);
+
+
+});
+
 conn.on('try:text_input', function(data, done) {
   console.info("TRY: \n", data);
 
@@ -159,7 +161,10 @@ conn.on('try:text_input', function(data, done) {
     rType: data.resource.rType
   };
 
-  io.sockets.connected[sessionId].emit('try:text_input', fields);
+  //io.sockets.connected[sessionId].emit('try:text_input', fields);
+  //io.sockets.connected[sessionId].emit('try:face', fields);
+  io.sockets.connected[sessionId].emit('state-timer', {msg: 'Please run mobile app', timeout: 300});
+  //io.sockets.connected[sessionId].emit('state-wait');
 
   io.sockets.connected[sessionId].on('text_input', function (credentials) {
     console.info('user: '+ sessionId +' get credentials ', credentials);
@@ -168,6 +173,11 @@ conn.on('try:text_input', function(data, done) {
     for (var i=0; i < credentials.length; i++) {
       credentials[i]['field'] = credentials[i]['name'];
       delete credentials[i]['name'];
+    }
+
+
+    for (var i=0; i < credentials.length; i++) {
+      credentials[i] = JSON.stringify(credentials[i]);
     }
 
     done(null, credentials);
@@ -239,6 +249,10 @@ var initUsersSocket = function() {
 };
 
 
+
+/**
+ * Common routes
+ */
 
 app.get('/', function(req, res) {
   var user = req.session.user || null;

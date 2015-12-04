@@ -43,7 +43,7 @@
 
         var stack = [];
         var samplesCount = 3;
-        var validateFrameCount = 30;
+        var validateFrameCount = 10;
         var samples = [];
         var finish = false;
 
@@ -69,8 +69,41 @@
                     }
                 }
             };
-            var onDimensionsReady = function(width, height) {
-                demo_app(width, height);
+
+            var onDimensionsReady = function(videoWidth, videoHeight) {
+                console.info('*', videoWidth, videoHeight);
+                console.info('**', canvas.width, canvas.height);
+
+                canvasWidth  = canvas.width;
+                canvasHeight = canvas.height;
+                ctx = canvas.getContext('2d');
+
+                ctx.fillStyle = "rgb(0,255,0)";
+                ctx.strokeStyle = "rgb(0,255,0)";
+
+                var scale = Math.min(max_work_size/videoWidth, max_work_size/videoHeight);
+                var w = (videoWidth*scale)|0;
+                var h = (videoHeight*scale)|0;
+                console.info('***', w, h, scale);
+                img_u8 = new jsfeat.matrix_t(w, h, jsfeat.U8_t | jsfeat.C1_t);
+                edg = new jsfeat.matrix_t(w, h, jsfeat.U8_t | jsfeat.C1_t);
+                work_canvas = document.createElement('canvas');
+                work_canvas.width = w;
+                work_canvas.height = h;
+                work_ctx = work_canvas.getContext('2d');
+                ii_sum = new Int32Array((w+1)*(h+1));
+                ii_sqsum = new Int32Array((w+1)*(h+1));
+                ii_tilted = new Int32Array((w+1)*(h+1));
+                ii_canny = new Int32Array((w+1)*(h+1));
+
+                options = {
+                  min_scale: 2,
+                  scale_factor: 1.15,
+                  use_canny: false,
+                  edges_density: 0.13,
+                  equalize_histogram: true
+                };
+
                 compatibility.requestAnimationFrame(tick);
             };
 
@@ -107,49 +140,6 @@
 
         var max_work_size = 160;
 
-        var demo_opt = function(){
-            this.min_scale = 2;
-            this.scale_factor = 1.15;
-            this.use_canny = false;
-            this.edges_density = 0.13;
-            this.equalize_histogram = true;
-        }
-
-        function demo_app(videoWidth, videoHeight) {
-            canvasWidth  = canvas.width;
-            canvasHeight = canvas.height;
-            ctx = canvas.getContext('2d');
-
-            ctx.fillStyle = "rgb(0,255,0)";
-            ctx.strokeStyle = "rgb(0,255,0)";
-
-            var scale = Math.min(max_work_size/videoWidth, max_work_size/videoHeight);
-            var w = (videoWidth*scale)|0;
-            var h = (videoHeight*scale)|0;
-
-            img_u8 = new jsfeat.matrix_t(w, h, jsfeat.U8_t | jsfeat.C1_t);
-            edg = new jsfeat.matrix_t(w, h, jsfeat.U8_t | jsfeat.C1_t);
-            work_canvas = document.createElement('canvas');
-            work_canvas.width = w;
-            work_canvas.height = h;
-            work_ctx = work_canvas.getContext('2d');
-            ii_sum = new Int32Array((w+1)*(h+1));
-            ii_sqsum = new Int32Array((w+1)*(h+1));
-            ii_tilted = new Int32Array((w+1)*(h+1));
-            ii_canny = new Int32Array((w+1)*(h+1));
-
-            options = new demo_opt();
-//            gui = new dat.GUI();
-//
-//            gui.add(options, 'min_scale', 1, 4).step(0.1);
-//            gui.add(options, 'scale_factor', 1.1, 2).step(0.025);
-//            gui.add(options, 'equalize_histogram');
-//            gui.add(options, 'use_canny');
-//            gui.add(options, 'edges_density', 0.01, 1.).step(0.005);
-
-//            stat.add("haar detector");
-        }
-
         function tick() {
             compatibility.requestAnimationFrame(tick);
 //            stat.new_frame();
@@ -184,11 +174,9 @@
 //                stat.stop("haar detector");
 
                 // draw only most confident one
-//                draw_faces(ctx, rects, canvasWidth/img_u8.cols, 1);
+                draw_faces(ctx, rects, canvasWidth/img_u8.cols, 1);
 
                 validate_face(ctx, rects, canvasWidth/img_u8.cols, 1);
-
-//                $('#log').html(stat.log());
             }
         }
 
@@ -213,8 +201,8 @@
 
 //            console.info(ctx, rects[0], sc, max);
 
-            var allowedDeltaSq = 0.25;
-            var allowedDeltaCenter = 0.1;
+            var allowedDeltaSq = 0.5; //0.25
+            var allowedDeltaCenter = 0.2; //0.1
 
             var boundarySq = 250*250;
             var width = rects[0].width * sc;
