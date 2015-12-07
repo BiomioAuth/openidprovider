@@ -164,13 +164,23 @@ io.on('connection', function(socket) {
           var cookies = cookie.parse(data.headers.cookie);
           var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
 
-          sessionStore.get(sid, function (error, sess) {
-            console.info('session get: ', error, sess);
-            sess.user = conn._on_behalf_of;
 
-            sessionStore.set(sid, sess, function (error, result) {
-              error && console.error(error);
-            });
+          /* create new redis store with TTL */
+          var redisStore = new rs({
+            host: config.redis.host,
+            port: config.redis.port,
+            ttl: config.session.ttl
+          });
+
+          redisStore.get(sid, function (error, sess) {
+            console.info('session get: ', error, sess);
+
+            if(sess) {
+              sess.user = conn._on_behalf_of;
+              redisStore.set(sid, sess, function (error, result) {
+                error && console.error(error);
+              });
+            }
           });
         }
 
