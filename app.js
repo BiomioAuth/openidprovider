@@ -177,9 +177,12 @@ io.on('connection', function(socket) {
 
             if(sess) {
               sess.user = conn._on_behalf_of;
-              redisStore.set(sid, sess, function (error, result) {
-                console.info('session set: ', error, result);
-                error && console.error(error);
+              redisStore.destroy(sid, function (error, result) {
+                console.info(error, result);
+                redisStore.set(sid, sess, function (error, result) {
+                  console.info('session set: ', error, result);
+                  error && console.error(error);
+                });
               });
             }
           });
