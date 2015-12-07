@@ -21,6 +21,10 @@ jwt = require('jwt-simple'),
 util = require("util"),
 base64url = require('base64url'),
 cleanObj = require('clean-obj');
+redis = require("redis-node");
+
+var config = require('../config');
+var redisClient = redis.createClient(config.redis);
 
 /**
  * We have only one client for now, in feature we are going to get client from API server
@@ -674,7 +678,15 @@ OpenIDConnect.prototype.auth = function() {
                         } else {
                             uri.query = resp;
                         }
-                        res.redirect(url.format(uri));
+
+                        /* set ttl for session */
+                        console.info('*set ttl');
+                        var sid = '';
+                        redisClient.expire(sid, 60, function (err, didSetExpiry) {
+                          console.log('session expire: ', err, didSetExpiry);
+                          res.redirect(url.format(uri));
+                        });
+
                     }
                 })
                 .fail(function(error) {
