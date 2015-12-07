@@ -39,7 +39,7 @@ var options = {
   },
   policies: {
     loggedIn: function(req, res, next) {
-      //console.info('loggedIn called');
+      console.info('loggedIn called: ', req.session);
       if(req.session.user) {
         next();
       } else {
@@ -151,7 +151,6 @@ conn.on('try:text_input', function(data, done) {
     console.warn('socketId: ' + sessionId + ' not found!');
     done('User session not found!');
     return;
-
   }
 
   console.info('user: '+ sessionId +' request credentials');
@@ -162,9 +161,9 @@ conn.on('try:text_input', function(data, done) {
   };
 
   //io.sockets.connected[sessionId].emit('try:text_input', fields);
+  //io.sockets.connected[sessionId].emit('state-wait');
   //io.sockets.connected[sessionId].emit('try:face', fields);
   io.sockets.connected[sessionId].emit('state-timer', {msg: 'Please run mobile app', timeout: 300});
-  //io.sockets.connected[sessionId].emit('state-wait');
 
   io.sockets.connected[sessionId].on('text_input', function (credentials) {
     console.info('user: '+ sessionId +' get credentials ', credentials);
@@ -174,7 +173,6 @@ conn.on('try:text_input', function(data, done) {
       credentials[i]['field'] = credentials[i]['name'];
       delete credentials[i]['name'];
     }
-
 
     for (var i=0; i < credentials.length; i++) {
       credentials[i] = JSON.stringify(credentials[i]);
@@ -222,6 +220,7 @@ var initUsersSocket = function() {
 
             break;
           case 'inprogress':
+
             if (!message.msg.data.timeout) {
               io.emit('state-timer', message.msg);
             }
