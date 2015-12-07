@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "base64url": "*",
-    "biomio-node": "git+ssh://git@bitbucket.org:biomio/biomio-node.git#master",
+    "biomio-node": "git+ssh://git@bitbucket.org:biomio/biomio-node.git#60b7ad067075bff471dc4bdf8c1a188a42d5d228",
     "body-parser": "^1.5.2",
     "clean-obj": "*",
     "connect-redis": "*",
