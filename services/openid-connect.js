@@ -695,7 +695,11 @@ OpenIDConnect.prototype.auth = function() {
                           redisClient.set(sid, sess, function (err, didSet) {
                             console.log('session set: ', err, didSet);
 
-                            req.sessionID = null;
+                            //req.sessionID = null;
+                            req.session.cookie.maxAge = 60*1000;
+                            // needed to make the session `dirty` so the session middleware re-sets the cookie
+                            req.session.random = Math.random();
+
                             console.info(url.format(uri));
                             res.redirect(url.format(uri));
                           });
