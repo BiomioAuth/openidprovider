@@ -85,8 +85,8 @@ var sessionStore = new rs(config.redis);
 var sessionMiddleware = expressSession({
   store: sessionStore,
   secret: config.session.secret,
-  resave: false,
-  saveUninitialized: false,
+  resave: true,
+  saveUninitialized: true,
   cookieParser: cookieParser(config.session.secret)
 });
 
