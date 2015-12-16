@@ -164,8 +164,24 @@ io.on('connection', function(socket) {
           var cookies = cookie.parse(data.headers.cookie);
           var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
 
+          sessionStore.get(sid, function (error, sess) {
+            sess.user = conn._on_behalf_of;
 
-          /* create new redis store with TTL */
+            sessionStore.set(sid, sess, function (error, result) {
+              console.info('session set: ', error, result);
+              error && console.error(error);
+            });
+          });
+        }
+
+
+/*        if (result.status === 'completed') {
+          var data = socket.handshake || socket.request;
+          var cookies = cookie.parse(data.headers.cookie);
+          var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
+
+
+          *//* create new redis store with TTL *//*
           var redisStore = new rs({
             host: config.redis.host,
             port: config.redis.port,
@@ -186,7 +202,7 @@ io.on('connection', function(socket) {
               });
             }
           });
-        }
+        }*/
 
         io.emit('status', result);
       });

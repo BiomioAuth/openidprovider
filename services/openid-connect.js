@@ -679,9 +679,11 @@ OpenIDConnect.prototype.auth = function() {
                             uri.query = resp;
                         }
 
-                        /* set ttl for session */
+                        /** set ttl for session */
                         console.info('*set ttl');
-                        var sid = '';
+                        console.info('SESSION ID: ', req.sessionID);
+                        var sid = req.sessionID;
+
                         redisClient.expire(sid, 60, function (err, didSetExpiry) {
                           console.log('session expire: ', err, didSetExpiry);
                           res.redirect(url.format(uri));
