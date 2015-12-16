@@ -6,7 +6,7 @@ module.exports = {
   session: {
     secret: "is2Dio5phax0uuhi",
     cookie: "connect.sid",
-    ttl: 60
+    ttl: 1
   },
   gate: {
     websocketUrl: process.env.GATE_URL
