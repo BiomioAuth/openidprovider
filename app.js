@@ -168,41 +168,11 @@ io.on('connection', function(socket) {
             sess.user = conn._on_behalf_of;
 
             sessionStore.set(sid, sess, function (error, result) {
-              console.info('session set: ', error, result);
+              //console.info('session set: ', error, result);
               error && console.error(error);
             });
           });
         }
-
-
-/*        if (result.status === 'completed') {
-          var data = socket.handshake || socket.request;
-          var cookies = cookie.parse(data.headers.cookie);
-          var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
-
-
-          *//* create new redis store with TTL *//*
-          var redisStore = new rs({
-            host: config.redis.host,
-            port: config.redis.port,
-            ttl: config.session.ttl
-          });
-
-          redisStore.get(sid, function (error, sess) {
-            console.info('session get: ', error, sess);
-
-            if(sess) {
-              sess.user = conn._on_behalf_of;
-              redisStore.destroy(sid, function (error, result) {
-                console.info(error, result);
-                redisStore.set(sid, sess, function (error, result) {
-                  console.info('session set: ', error, result);
-                  error && console.error(error);
-                });
-              });
-            }
-          });
-        }*/
 
         io.emit('status', result);
       });
@@ -232,7 +202,6 @@ io.on('connection', function(socket) {
 });
 
 app.get('/', function(req, res) {
-  console.info(req.session);
   var user = req.session.user || null;
   res.render('index', {user: user});
 });
