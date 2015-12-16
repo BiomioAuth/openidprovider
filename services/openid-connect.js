@@ -683,6 +683,7 @@ OpenIDConnect.prototype.auth = function() {
                       console.info('*set ttl');
                       console.info('SESSION ID: ', req.sessionID);
                       var sid = req.sessionID;
+                      sid = 'sess:' + sid;
 
 
                       redisClient.get(sid, function (val) {
