@@ -686,8 +686,8 @@ OpenIDConnect.prototype.auth = function() {
                       sid = 'sess:' + sid;
 
 
-                      redisClient.get(sid, function (sess, val2) {
-                        console.log('session get: ', sess, val2);
+                      redisClient.get(sid, function (err, sess) {
+                        console.log('session get: ', err, sess);
 
                         redisClient.expire(sid, 60, function (err, didSetExpiry) {
                           console.log('session expire: ', err, didSetExpiry);
