@@ -686,11 +686,12 @@ OpenIDConnect.prototype.auth = function() {
                       sid = 'sess:' + sid;
 
 
-                      redisClient.get(sid, function (val) {
-                        console.log('session get: ', val);
+                      redisClient.get(sid, function (val, val2) {
+                        console.log('session get: ', val, val2);
 
                         redisClient.expire(sid, 60, function (err, didSetExpiry) {
                           console.log('session expire: ', err, didSetExpiry);
+                          console.info(uri, url.format(uri));
                           res.redirect(url.format(uri));
                         });
 
