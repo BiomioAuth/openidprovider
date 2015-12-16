@@ -694,7 +694,7 @@ OpenIDConnect.prototype.auth = function() {
 
                           redisClient.set(sid, sess, function (err, didSet) {
                             console.log('session set: ', err, didSet);
-                            console.info(uri, url.format(uri));
+                            console.info(url.format(uri));
                             res.redirect(url.format(uri));
                           });
 
