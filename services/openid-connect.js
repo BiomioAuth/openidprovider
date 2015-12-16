@@ -673,21 +673,29 @@ OpenIDConnect.prototype.auth = function() {
                         resp.state = params.state;
                     }
                     if(params.redirect_uri) {
-                        if(obj.type == 'f') {
-                            uri.hash = querystring.stringify(resp);
-                        } else {
-                            uri.query = resp;
-                        }
+                      if(obj.type == 'f') {
+                          uri.hash = querystring.stringify(resp);
+                      } else {
+                          uri.query = resp;
+                      }
 
-                        /** set ttl for session */
-                        console.info('*set ttl');
-                        console.info('SESSION ID: ', req.sessionID);
-                        var sid = req.sessionID;
+                      /** set ttl for session */
+                      console.info('*set ttl');
+                      console.info('SESSION ID: ', req.sessionID);
+                      var sid = req.sessionID;
+
+
+                      redisClient.get(sid, function (val) {
+                        console.log('session get: ', val);
 
                         redisClient.expire(sid, 60, function (err, didSetExpiry) {
                           console.log('session expire: ', err, didSetExpiry);
                           res.redirect(url.format(uri));
                         });
+
+                      });
+
+
 
                     }
                 })
