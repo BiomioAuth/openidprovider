@@ -43,7 +43,6 @@ var options = {
   },
   policies: {
     loggedIn: function(req, res, next) {
-      console.info('SESS', req.session.cookie.maxAge, req.session);
       if(req.session.user) {
         next();
       } else {

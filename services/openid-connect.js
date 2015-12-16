@@ -679,30 +679,24 @@ OpenIDConnect.prototype.auth = function() {
                           uri.query = resp;
                       }
 
-                      /** set ttl for session */
-                      console.info('SESSION ID: ', req.sessionID);
-                      var sid = req.sessionID;
-                      sid = 'sess:' + sid;
-
-                      redisClient.get(sid, function (err, sess) {
-                        console.log('session get: ', err, sess);
+                      /** set new ttl for session */
+                      if (req.sessionID) {
+                        //console.info('SESSION ID: ', req.sessionID);
+                        var sid = 'sess:' + req.sessionID;
 
                         redisClient.expire(sid, config.session.ttl, function (err, didSetExpiry) {
-                          console.log('session expire: ', err, didSetExpiry);
+                          err && console.error(err);
 
-                          //redisClient.set(sid, sess, function (err, didSet) {
-                          //  console.log('session set: ', err, didSet);
+                          req.session.cookie.maxAge = config.session.ttl * 1000;
+                          // needed to make the session `dirty` so the session middleware re-sets the cookie
+                          req.session.random = Math.random();
 
-                            req.session.cookie.maxAge = config.session.ttl*1000;
-                            // needed to make the session `dirty` so the session middleware re-sets the cookie
-                            req.session.random = Math.random();
-
-                            res.redirect(url.format(uri));
-                          //});
-
+                          res.redirect(url.format(uri));
                         });
 
-                      });
+                      } else {
+                        res.redirect(url.format(uri));
+                      }
 
                     }
                 })
