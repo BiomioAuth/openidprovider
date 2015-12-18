@@ -58,7 +58,9 @@ var options = {
   app: app
 };
 
-var oidc = require('./services/openid-connect').oidc(options);
+var oidc = require('./services/openIdConnect').oidc(options);
+var textInputTry = require('./services/textInputTry');
+var faceTry = require('./services/faceTry');
 
 if ('development' == app.get('env')) {
   app.use(errorHandler());
@@ -134,53 +136,12 @@ conn.on('getResources', function(done) {
 
 conn.on('try:face', function(data, done) {
   console.info("TRY: \n", data);
-
-
+  faceTry(io, data, done);
 });
 
 conn.on('try:text_input', function(data, done) {
   console.info("TRY: \n", data);
-
-  /**
-   * get user's socket connection (sessionId)
-   * generate form and display it to user
-   */
-  var sessionId = data.sessionId;
-
-  if (!io.sockets.connected[sessionId]) {
-    console.warn('socketId: ' + sessionId + ' not found!');
-    done('User session not found!');
-    return;
-  }
-
-  console.info('user: '+ sessionId +' request credentials');
-
-  var fields = {
-    rProperties: JSON.parse(data.resource.rProperties),
-    rType: data.resource.rType
-  };
-
-  //io.sockets.connected[sessionId].emit('try:text_input', fields);
-  //io.sockets.connected[sessionId].emit('state-wait');
-  //io.sockets.connected[sessionId].emit('try:face', fields);
-  io.sockets.connected[sessionId].emit('state-timer', {msg: 'Please run mobile app', timeout: 300});
-
-  io.sockets.connected[sessionId].on('text_input', function (credentials) {
-    console.info('user: '+ sessionId +' get credentials ', credentials);
-
-    /** reformat data: [{field: '', value},{...}] */
-    for (var i=0; i < credentials.length; i++) {
-      credentials[i]['field'] = credentials[i]['name'];
-      delete credentials[i]['name'];
-    }
-
-    for (var i=0; i < credentials.length; i++) {
-      credentials[i] = JSON.stringify(credentials[i]);
-    }
-
-    done(null, credentials);
-  });
-
+  textInputTry(io, data, done);
 });
 
 /**
@@ -258,15 +219,9 @@ app.get('/', function(req, res) {
   res.render('index', {user: user});
 });
 
-/* test face recognition */
-app.get('/face', function(req, res) {
-  res.render('face');
-});
-
 app.get('/login', auth.login());
 
-//app.all('/logout', oidc.removetokens(), auth.logout(), function(req, res)
-app.all('/logout', function(req, res) {
+app.all('/logout', oidc.removetokens(), function(req, res) {
   sessionStore.destroy(req.session.id, function (error, sess) {
     console.info('session destroy: ', error, sess);
     req.session.destroy();
@@ -282,9 +237,8 @@ app.post('/user/token', oidc.token());
 
 //user consent form
 app.get('/user/consent', user.consentForm());
-
 app.post('/user/consent', oidc.consent());
 
 //user creation form
-app.get('/user/create', user.createForm());
+//app.get('/user/create', user.createForm());
 

@@ -1,27 +1,3 @@
-/*var validate = function (req, next) {
-  console.info('VALIDATE USER');
-  delete req.session.error;
-
-  if (req.body.externalToken) {
-
-    return next(null, {id: 1});
-  } else {
-
-    return next(null, {id: 1});
-  }
-
-};
-
-var validateSuccess = function (req, res, next) {
-  res.redirect(req.param('return_url')||'/user');
-};
-
-var validateFail = function (err, req, res, next) {
-  req.session.error = err.message;
-  res.redirect(req.path);
-};
- */
-
 var logout = function(req, res, next) {
   return function(req, res, next) {
     //req.session.destroy();
