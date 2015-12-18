@@ -58,7 +58,7 @@ var options = {
   app: app
 };
 
-var oidc = require('./services/openIdConnect').oidc(options);
+var openId = require('./services/openIdConnect').oidc(options);
 var textInputTry = require('./services/textInputTry');
 var faceTry = require('./services/faceTry');
 
@@ -95,8 +95,6 @@ app.set('port', process.env.PORT || 5000);
 
 server.listen(app.get('port'));
 
-console.info(config);
-
 try {
   var privateKey = fs.readFileSync(__dirname + '/' + config.appSecretFile).toString();
 } catch (e) {
@@ -104,18 +102,18 @@ try {
   process.exit(1);
 }
 
+console.info(config);
 console.info(privateKey);
 
 var gateOptions = {
   gateURL: config.gate.websocketUrl,
   appId: config.appId,
   appKey: privateKey,
-  appType: 'hybrid', // probe | extension | hybrid
-
+  appType: 'hybrid',
   /* optional parameters */
   osId: 'linux',
   headerOid: 'clientHeader',
-  devId: 'node_js_lib'
+  devId: 'open_id_provider'
 }
 
 var clientId = 'test.open.id.provider@gmail.com';
@@ -221,7 +219,7 @@ app.get('/', function(req, res) {
 
 app.get('/login', auth.login());
 
-app.all('/logout', oidc.removetokens(), function(req, res) {
+app.all('/logout', openId.removetokens(), function(req, res) {
   sessionStore.destroy(req.session.id, function (error, sess) {
     console.info('session destroy: ', error, sess);
     req.session.destroy();
@@ -230,14 +228,14 @@ app.all('/logout', oidc.removetokens(), function(req, res) {
 });
 
 //authorization endpoint
-app.get('/user/authorize', oidc.auth());
+app.get('/user/authorize', openId.auth());
 
 //token endpoint
-app.post('/user/token', oidc.token());
+app.post('/user/token', openId.token());
 
 //user consent form
 app.get('/user/consent', user.consentForm());
-app.post('/user/consent', oidc.consent());
+app.post('/user/consent', openId.consent());
 
 //user creation form
 //app.get('/user/create', user.createForm());
