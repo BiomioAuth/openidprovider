@@ -27,6 +27,7 @@
     "modelling": "*",
     "npm": "^3.3.6",
     "q": "^1.4.1",
+    "redis-node": "^0.4.0",
     "sails-redis": "git://github.com/balderdashy/sails-redis",
     "serve-favicon": "^2.3.0",
     "socket.io": "^1.3.7"

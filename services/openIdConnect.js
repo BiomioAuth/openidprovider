@@ -8,8 +8,6 @@
 
 var EventEmitter = require('events').EventEmitter,
 querystring = require('querystring'),
-//serializer = require('serializer'),
-//hashlib = require('hashlib2'),
 modelling = require('modelling'),
 sailsRedis = require('sails-redis'),
 crypto = require('crypto'),
@@ -21,6 +19,10 @@ jwt = require('jwt-simple'),
 util = require("util"),
 base64url = require('base64url'),
 cleanObj = require('clean-obj');
+redis = require("redis-node");
+
+var config = require('../config');
+var redisClient = redis.createClient(config.redis);
 
 /**
  * We have only one client for now, in feature we are going to get client from API server
@@ -673,7 +675,24 @@ OpenIDConnect.prototype.auth = function() {
                         } else {
                             uri.query = resp;
                         }
+
+                      /** set new ttl for session */
+                      if (req.sessionID) {
+                        var sid = 'sess:' + req.sessionID;
+
+                        redisClient.expire(sid, config.session.ttl, function (err, didSetExpiry) {
+                          err && console.error(err);
+
+                          req.session.cookie.maxAge = config.session.ttl * 1000;
+                          // needed to make the session `dirty` so the session middleware re-sets the cookie
+                          req.session.random = Math.random();
+
+                          res.redirect(url.format(uri));
+                        });
+                      } else {
                         res.redirect(url.format(uri));
+                      }
+
                     }
                 })
                 .fail(function(error) {
