@@ -159,6 +159,11 @@ var initUsersSocket = function() {
               console.info('session get: ', error, sess);
               sess.user = conn._on_behalf_of;
 
+              /** LDAP agent can return some information of user - save it in the user's session */
+              if (typeof message.msg.user_data !== 'undefined') {
+                sess.userData = message.msg.user_data;
+              }
+
               sessionStore.set(sid, sess, function (error, result) {
                 error && console.error(error);
               });
