@@ -1,3 +1,9 @@
+'use strict';
+
+/**
+ * All this don't need, we are going to use API to check clients
+ */
+
 var crypto = require('crypto');
 
 var registerForm = function(req, res, next) {

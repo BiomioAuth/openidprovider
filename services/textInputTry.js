@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Try handler: text_input
  * @param io - current socket connection

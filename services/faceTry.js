@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Try handler: face
  * @param io

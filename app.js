@@ -1,3 +1,5 @@
+'use strict';
+
 var express = require('express');
 var expressSession = require('express-session');
 var http = require('http');
@@ -38,22 +40,7 @@ var options = {
     }
   },
   policies: {
-    loggedIn: function(req, res, next) {
-      console.info('loggedIn called: ', req.session);
-      if(req.session.user) {
-        next();
-      } else {
-        var params = {};
-
-        if (req.parsedParams && req.parsedParams['external_token'] !== undefined) {
-         params.external_token = req.parsedParams['external_token'];
-        }
-
-        params.return_url = req.parsedParams ? req.path + '?' + querystring.stringify(req.parsedParams) : req.originalUrl;
-
-        res.redirect(this.settings.login_url + '?' + querystring.stringify(params));
-      }
-    }
+    loggedIn: auth.loggedInPolicy
   },
   app: app
 };

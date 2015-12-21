@@ -1,10 +1,6 @@
-var logout = function(req, res, next) {
-  return function(req, res, next) {
-    //req.session.destroy();
-    //
-    ////res.redirect('/');
-  }
-};
+'use strict';
+
+var querystring = require('querystring');
 
 var login = function(req, res, next) {
   return function(req, res, next) {
@@ -40,8 +36,25 @@ var login = function(req, res, next) {
   }
 };
 
+var loggedInPolicy = function(req, res, next) {
+    console.info('loggedIn called: ', req.session);
+    if(req.session.user) {
+      next();
+    } else {
+      var params = {};
+
+      if (req.parsedParams && req.parsedParams['external_token'] !== undefined) {
+        params.external_token = req.parsedParams['external_token'];
+      }
+
+      params.return_url = req.parsedParams ? req.path + '?' + querystring.stringify(req.parsedParams) : req.originalUrl;
+
+      res.redirect('/login?' + querystring.stringify(params));
+    }
+}
+
 
 module.exports = {
   login: login,
-  logout: logout
+  loggedInPolicy: loggedInPolicy
 }
