@@ -7,10 +7,7 @@ var path = require('path');
 var cors = require('cors');
 var cookie = require('cookie');
 var cookieParser = require('cookie-parser');
-var querystring = require('querystring');
-var Promise = require("bluebird");
 var rs = require('connect-redis')(expressSession);
-var extend = require('extend');
 var bodyParser = require('body-parser');
 var errorHandler = require('errorhandler');
 var _ = require('lodash');
@@ -24,10 +21,12 @@ var io = require('socket.io')(server);
 
 var config = require('./config');
 var client = require('./controllers/client');
+var clientModel = require('./services/clientModel');
 var user = require('./controllers/user');
 var auth = require('./controllers/auth');
 
 var env = process.env.NODE_ENV || 'production';
+
 
 var options = {
   login_url: '/login',
@@ -42,6 +41,7 @@ var options = {
   policies: {
     loggedIn: auth.loggedInPolicy
   },
+  client: clientModel, // custom client's model
   app: app
 };
 

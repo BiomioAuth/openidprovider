@@ -6,40 +6,24 @@
  * @author Agustín Moyano
  */
 
-var EventEmitter = require('events').EventEmitter,
-querystring = require('querystring'),
-modelling = require('modelling'),
-sailsRedis = require('sails-redis'),
-crypto = require('crypto'),
-_ = require('lodash'),
-extend = require('extend'),
-url = require('url'),
-Q = require('q'),
-jwt = require('jwt-simple'),
-util = require("util"),
-base64url = require('base64url'),
-cleanObj = require('clean-obj');
-redis = require("redis-node");
+var EventEmitter = require('events').EventEmitter;
+var querystring = require('querystring');
+var modelling = require('modelling');
+var sailsRedis = require('sails-redis');
+var redis = require("redis-node");
+var crypto = require('crypto');
+var _ = require('lodash');
+var extend = require('extend');
+var url = require('url');
+var Q = require('q');
+var jwt = require('jwt-simple');
+var util = require("util");
+var base64url = require('base64url');
+var cleanObj = require('clean-obj');
 
 var config = require('../config');
 var redisClient = redis.createClient(config.redis);
 
-/**
- * We have only one client for now, in feature we are going to get client from API server
- */
-var client = {
-  "name": "client name",
-  "redirect_uris": [
-    "http://oidc.surge.sh/callback.html"
-  ],
-  "key": "56ce9a6a93c17d2c867c5c293482b8f9",
-  "secret": "85a879a19387afe791039a88b354a374",
-  "user": "biomio.vk.test@gmail.com",
-  "credentialsFlow": false,
-  "createdAt": "2015-09-21T09:51:44.164Z",
-  "updatedAt": "2015-09-21T09:51:44.164Z",
-  "id": 1
-};
 
 var defaults = {
         login_url: '/login',
@@ -490,13 +474,15 @@ OpenIDConnect.prototype.auth = function() {
                         });
                     }
 
-                    if (client.key === params.client_id) {
-                      req.session.client_id = client.id;
-                      req.session.client_secret = client.secret;
-                      deferred.resolve(params);
-                    } else {
-                      deferred.reject({type: 'error', uri: params.redirect_uri, error: 'invalid_client', msg: 'Client '+params.client_id+' doesn\'t exist.'});
-                    }
+                    self.settings.client.findOne({id: params.client_id}, function(err, model) {
+                      if(err || !model) {
+                        deferred.reject({type: 'error', uri: params.redirect_uri, error: 'invalid_client', msg: 'Client '+params.client_id+' doesn\'t exist.'});
+                      } else {
+                        req.session.client_id = model.id;
+                        req.session.client_secret = model.secret;
+                        deferred.resolve(params);
+                      }
+                    });
 
                     return deferred.promise;
                 }).then(function(params){
@@ -790,11 +776,13 @@ OpenIDConnect.prototype.token = function() {
                     //Step 2: check if client and secret are valid
                     var deferred = Q.defer();
 
-                    if (client.key === client_key && client.secret === client_secret) {
-                      deferred.resolve(client);
-                    } else {
-                      deferred.reject({type: 'error', error: 'invalid_client', msg: 'Client doesn\'t exist or invalid secret.'});
-                    }
+                    self.settings.client.findOne({key: client_key, secret: client_secret}, function(err, model) {
+                      if(err || !model) {
+                        deferred.reject({type: 'error', error: 'invalid_client', msg: 'Client doesn\'t exist or invalid secret.'});
+                      } else {
+                        deferred.resolve(model);
+                      }
+                    });
 
                     return deferred.promise;
                 })
@@ -982,13 +970,13 @@ OpenIDConnect.prototype.token = function() {
                                         access.destroy();
                                         if(access.auth) {
                                             req.model.auth.findOne({id: refresh.auth})
-				                            .populate('accessTokens')
-				                            .populate('refreshTokens')
-                                            .exec(function(err, auth) {
-                                                if(!auth.accessTokens.length && !auth.refreshTokens.length) {
-                                                    auth.destroy();
-                                                }
-                                            });
+                                              .populate('accessTokens')
+                                              .populate('refreshTokens')
+                                              .exec(function(err, auth) {
+                                                  if(!auth.accessTokens.length && !auth.refreshTokens.length) {
+                                                      auth.destroy();
+                                                  }
+                                              });
                                         }
                                     }, 1000*3600); //1 hour
 
