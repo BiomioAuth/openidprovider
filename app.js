@@ -232,3 +232,22 @@ app.post('/user/consent', openId.consent());
 //user creation form
 //app.get('/user/create', user.createForm());
 
+app.get('/api/user', openId.check('openid', /profile|email/), openId.use({models: ['access']}), function(req, res) {
+
+  var access_token = req.param('access_token');
+  if (!access_token) {
+    access_token = (req.headers['authorization'] || '').indexOf('Bearer ') === 0 ? req.headers['authorization'].replace('Bearer', '').trim() : false;
+  }
+  req.model.access
+    .findOne({token: access_token})
+    .exec(function (err, access) {
+      if (!err && access) {
+        res.send({user: access.user});
+      } else {
+        res.send(400, {})
+      }
+    });
+
+
+});
+
