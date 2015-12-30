@@ -251,3 +251,7 @@ app.get('/api/user', openId.check('openid', /profile|email/), openId.use({models
 
 });
 
+
+clientModel.findOne({id: 'g0_9uVoeK4b048a'}, function(err, client) {
+  console.info(err, client);
+})

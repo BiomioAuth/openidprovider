@@ -11,6 +11,7 @@ module.exports = {
   gate: {
     websocketUrl: process.env.GATE_URL
   },
+  api: process.env.API_URL,
   appId: process.env.APP_ID,
   appSecretFile: process.env.APP_SECRET_FILE,
   resources: [

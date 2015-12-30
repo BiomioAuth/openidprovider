@@ -1,13 +1,11 @@
 "use strict";
 
-var _ = require('lodash');
+var config = require('../config');
+var request = require('request');
 
-/**
- * Currently we keep clients locally, but in feature we are going to get them from API
- */
 var ClientModel = (function() {
 
-  var clients = [
+/*
     {
       "id": 1,
       "name": "Client (has LDAP)",
@@ -21,16 +19,30 @@ var ClientModel = (function() {
       "createdAt": "2015-09-21T09:51:44.164Z",
       "updatedAt": "2015-09-21T09:51:44.164Z"
     }
-  ];
+*/
 
   var findOne = function(condition, cb) {
-    var index = _.findIndex(clients, condition);
+    var endpoint = config.api + '/get_client_info/' + condition.id;
+    request.post({url: endpoint}, function(err, httpResponse, body) {
 
-    if (index === -1) {
-      cb(null, null);
-    } else {
-      cb(null, clients[index]);
-    }
+      try {
+        body = JSON.parse(body);
+      } catch(Ex) {
+        console.error(Ex);
+        cb(ex, null);
+        return;
+      }
+
+      if (!err && body) {
+        body.key = condition.id;
+        body.credentialsFlow = false;
+        body.user = "biomio.vk.test@gmail.com";
+
+        cb(null, body);
+      } else {
+        cb(err, null);
+      }
+    });
   }
 
   return {
