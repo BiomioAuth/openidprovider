@@ -18,6 +18,7 @@
 
         <div class="footer">
             <img class="footer__logo" src="footer-logo.png" alt="biomio logo" title=""/>
+
             <p class="footer__text">Multi-Factor, Password-Optional Authentication Anywhere, Everywhere</p>
         </div>
     </div>
@@ -95,10 +96,33 @@
                 var face = new Face({
                     debug: true,
                     $element: state.$face,
-                    samplesCount: 3,
-                    validateFrameCount: 10
+                    samplesCount: response.samples,
+                    validateFrameCount: 10,
+                    allowedDeltaSq: 0.25,
+                    allowedDeltaCenter: 0.2
                 });
 
+                face.onSubmit = function (photos) {
+                    console.info('on submit: ', photos);
+                    socket.emit('face', photos);
+                };
+
+            });
+
+            /** handle get resources request from backend */
+            socket.on('resource:face', function (response) {
+                console.info('resource:face: ', response);
+
+                var video = document.createElement('video');
+                Face.getResources(video, function (err, resources) {
+                    console.info('Face.getResources: ', err, resources);
+
+                    if (!err && resources) {
+                        socket.emit('resource:face', resources.width + 'x' + resources.height);
+                    } else {
+                        socket.emit('resource:face', '');
+                    }
+                });
             });
 
             socket.on('state-timer', function (response) {

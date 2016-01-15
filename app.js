@@ -116,11 +116,32 @@ conn.on('ready', function() {
 });
 
 conn.on('getResources', function(done) {
+
+  // @todo: waiting implementation on Gate
+  // this function must has access to request data (like try) - to check sessionId!
+  // if we have sessionId in request we should check if user connected by websocket
+  // if connected - request web camera resolutions
+  // if web camera is available - add this resource to response
+
+  //{
+  //  rProperties: "1280x720",
+  //  rType: "front-cam"
+  //}
+
   done(config.resources);
 });
 
 conn.on('try:face', function(data, done) {
   console.info("TRY: \n", data);
+
+  //resource =                 {
+  //  rProperties = 1280x720;
+  //  rType = "front-cam";
+  //};
+  //samples = 1;
+  //tType = face;
+
+
   faceTry(io, data, done);
 });
 
@@ -185,7 +206,31 @@ var initUsersSocket = function() {
 
       io.emit('state-wait');
 
+
+      // TEST FACE
+      io.emit('resource:face');
+
+      var fields = {
+        rProperties: "640x480",
+        rType: 'front-cam',
+        samples: 2
+      };
+
+
+      setTimeout(function() {
+        io.emit('try:face', fields);
+      }, 3000);
+
     });
+
+    // TEST: handle answer from frontend
+    socket.on('resource:face', function (data) {
+      console.info('XXXXXX resource:face', data);
+    });
+    socket.on('face', function (data) {
+      console.info('XXXXXX face', data);
+    });
+
 
     socket.on('error', function(response) {
       console.warn('SOCKET ERROR: ', response);
@@ -248,10 +293,9 @@ app.get('/api/user', openId.check('openid', /profile|email/), openId.use({models
       }
     });
 
-
 });
 
-
+// TEST API
 clientModel.findOne({id: 'g0_9uVoeK4b048a'}, function(err, client) {
   console.info(err, client);
 })

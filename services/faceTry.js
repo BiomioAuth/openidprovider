@@ -18,12 +18,19 @@ module.exports = function(io, data, done) {
 
   var fields = {
     rProperties: JSON.parse(data.resource.rProperties),
-    rType: data.resource.rType
+    rType: data.resource.rType,
+    samples: data.samples
   };
 
   io.sockets.connected[sessionId].emit('try:face', fields);
 
   io.sockets.connected[sessionId].on('face', function (data) {
+    console.info('face', data);
+    done(null, data);
+  });
+
+  io.sockets.connected[sessionId].on('resource:face', function (data) {
+    console.info('resource:face', data);
     done(null, data);
   });
 }
