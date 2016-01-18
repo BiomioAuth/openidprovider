@@ -198,6 +198,9 @@ var initUsersSocket = function() {
             }
 
             break;
+          case 'fail':
+            console.error(message.msg.data.error);
+            break;
           default:
             throw Error('Unhandled RPC status: ', message.msg.rpcStatus);
         }
