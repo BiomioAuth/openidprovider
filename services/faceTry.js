@@ -17,7 +17,8 @@ module.exports = function(io, data, done) {
   }
 
   var fields = {
-    rProperties: JSON.parse(data.resource.rProperties),
+    //rProperties: JSON.parse(data.resource.rProperties),
+    rProperties: data.resource.rProperties,
     rType: data.resource.rType,
     samples: data.samples
   };
@@ -25,7 +26,7 @@ module.exports = function(io, data, done) {
   io.sockets.connected[sessionId].emit('try:face', fields);
 
   io.sockets.connected[sessionId].on('face', function (data) {
-    console.info('face', data);
+    console.info('face', data.length);
     done(null, data);
   });
 

@@ -90,7 +90,6 @@ try {
 }
 
 console.info(config);
-console.info(privateKey);
 
 var gateOptions = {
   gateURL: config.gate.websocketUrl,
@@ -111,23 +110,12 @@ var conn = new BiomioNode(clientId, gateOptions);
 conn.on('ready', function() {
   console.info('Connection to Gate is ready!');
 
-  /* run auth... */
+  /* run socket to enduser */
   initUsersSocket();
 });
 
 conn.on('getResources', function(done) {
-
-  // @todo: waiting implementation on Gate
-  // this function must has access to request data (like try) - to check sessionId!
-  // if we have sessionId in request we should check if user connected by websocket
-  // if connected - request web camera resolutions
-  // if web camera is available - add this resource to response
-
-  //{
-  //  rProperties: "1280x720",
-  //  rType: "front-cam"
-  //}
-
+  // @todo: looks like we will not use this handler in feature
   done(config.resources);
 });
 
@@ -157,17 +145,29 @@ var initUsersSocket = function() {
   io.on('connection', function(socket) {
     console.info('user connected: ', socket.id);
 
-    socket.on('run-auth', function(email) {
 
-      /* @todo: remember email (if exists) in user socket session */
+    /** Get response from user with information of webcamera */
+    socket.on('resource:face', function (data) {
+      console.info('XXXXXX resource:face', data);
 
       var sessionId = socket.id;
       var clientId = 'test.open.id.provider@gmail.com'; //hardcoded for now, it should goes from url request
 
-      console.log('run-auth: ', clientId, sessionId);
+      var rpcParams = {
+        sessionId: sessionId,
+        clientId: clientId
+      };
+
+      if (data) {
+        rpcParams.resources = {"front-cam": "640x480"};
+      } else {
+        rpcParams.resources = {"input": ""};
+      }
+
+      console.log('run-auth: ', rpcParams);
 
       /* callback will be called few times: inprogress, completed */
-      conn.rpc('auth', sessionId, clientId, function(message) {
+      conn.rpc('auth', rpcParams, function(message) {
         console.log("RUN AUTH STATUS: \n" + JSON.stringify(message, null, 2));
 
         switch(message.msg.rpcStatus) {
@@ -207,33 +207,38 @@ var initUsersSocket = function() {
 
       });
 
+
+      //// Emulate try:face request from Gate
+      //var fields = {
+      //  sessionId: socket.id,
+      //  resource: {
+      //    rProperties: "640x480",
+      //    rType: 'front-cam'
+      //  },
+      //  samples: 2
+      //};
+      //
+      //setTimeout(function() {
+      //  faceTry(io, fields, function(err, result) {
+      //    console.info('XXXXXX try:face result received: ', err, result);
+      //  });
+      //}, 3000);
+      //// END Emulate
+
+    });
+
+
+    socket.on('run-auth', function(email) {
+
+      /* @todo: remember email (if exists) in user socket session */
+
+      /** display "wait" screen */
       io.emit('state-wait');
 
-
-      // TEST FACE
+      /** Get webcamera resolutions, if it exists and enduser allows access to it */
       io.emit('resource:face');
 
-      var fields = {
-        rProperties: "640x480",
-        rType: 'front-cam',
-        samples: 2
-      };
-
-
-      setTimeout(function() {
-        io.emit('try:face', fields);
-      }, 3000);
-
     });
-
-    // TEST: handle answer from frontend
-    socket.on('resource:face', function (data) {
-      console.info('XXXXXX resource:face', data);
-    });
-    socket.on('face', function (data) {
-      console.info('XXXXXX face', data);
-    });
-
 
     socket.on('error', function(response) {
       console.warn('SOCKET ERROR: ', response);
