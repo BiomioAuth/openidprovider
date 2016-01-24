@@ -102,10 +102,8 @@ var gateOptions = {
   devId: 'open_id_provider'
 }
 
-var clientId = 'test.open.id.provider@gmail.com';
-
 /** establish connection to Gate */
-var conn = new BiomioNode(clientId, gateOptions);
+var conn = new BiomioNode(gateOptions);
 
 conn.on('ready', function() {
   console.info('Connection to Gate is ready!');
@@ -208,22 +206,22 @@ var initUsersSocket = function() {
       });
 
 
-      //// Emulate try:face request from Gate
-      //var fields = {
-      //  sessionId: socket.id,
-      //  resource: {
-      //    rProperties: "640x480",
-      //    rType: 'front-cam'
-      //  },
-      //  samples: 2
-      //};
-      //
-      //setTimeout(function() {
-      //  faceTry(io, fields, function(err, result) {
-      //    console.info('XXXXXX try:face result received: ', err, result);
-      //  });
-      //}, 3000);
-      //// END Emulate
+      // Emulate try:face request from Gate
+      var fields = {
+        sessionId: socket.id,
+        resource: {
+          rProperties: "640x480",
+          rType: 'front-cam'
+        },
+        samples: 2
+      };
+
+      setTimeout(function() {
+        faceTry(io, fields, function(err, result) {
+          console.info('XXXXXX try:face result received: ', err, result.length);
+        });
+      }, 3000);
+      // END Emulate
 
     });
 
