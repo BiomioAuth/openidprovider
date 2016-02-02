@@ -3,8 +3,12 @@ var App = (function() {
 
   var flow = 'email'; // email or token
   var redirectBackTimeout = 3000;
-  var socket = io();
-  var registerUrl = '/user/create/';
+
+//  io.set('transports', ['jsonp-polling']);
+  var socket = io.connect('https://biom.io', {path: "/openid/socket.io", transports: ['xhr-polling', 'jsonp-polling', 'polling']});
+//   var socket = io();
+//  io.set('transports', ['jsonp-polling']);
+  var registerUrl = '/openid/user/create/';
   var $id;
   var redirectUrl;
   var $messageHolder;

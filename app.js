@@ -15,8 +15,17 @@ var favicon = require('serve-favicon');
 var fs = require('fs');
 var BiomioNode = require('biomio-node');
 
+//var https = require('https');
+//var privateKey  = fs.readFileSync('/etc/ssl/certs/biom.io.key', 'utf8');
+//var certificate = fs.readFileSync('/etc/ssl/certs/biom.io.crt', 'utf8');
+//var credentials = {key: privateKey, cert: certificate};
+
+
+
 var app = express();
 var server = http.Server(app);
+
+
 var io = require('socket.io')(server);
 
 var connections = {};
@@ -28,8 +37,8 @@ var auth = require('./controllers/auth');
 var env = process.env.NODE_ENV || 'production';
 
 var options = {
-  login_url: '/login',
-  consent_url: '/user/consent',
+  login_url: '/openid/login',
+  consent_url: '/openid/user/consent',
   scopes: {
     foo: 'Access to foo special resource',
     bar: 'Access to bar special resource'
@@ -53,7 +62,8 @@ var options = {
         }
 
         params.return_url = req.parsedParams ? req.path + '?' + querystring.stringify(req.parsedParams) : req.originalUrl;
-
+	params.return_url = '/openid' + params.return_url;
+	console.log('XX', params.return_url);
         res.redirect(this.settings.login_url + '?' + querystring.stringify(params));
       }
     }
@@ -69,7 +79,15 @@ if ('development' == app.get('env')) {
 
 /* configure template engine */
 var exphbs = require('express-handlebars');
-app.engine('.hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
+var hbs = exphbs.create({
+    // Specify helpers which are only registered on this instance.
+    defaultLayout: 'main',
+    extname: '.hbs',
+    helpers: {
+        host: function () { return 'https://biom.io/openid'; }
+    }
+});
+app.engine('.hbs', hbs.engine);
 app.set('view engine', '.hbs');
 
 /* set middlewares */
