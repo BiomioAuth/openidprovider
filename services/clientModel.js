@@ -22,6 +22,8 @@ var ClientModel = (function() {
 */
 
   var findOne = function(condition, cb) {
+    console.info('ClientModel.findOne: ', condition);
+
     var endpoint = config.api + '/get_client_info/' + condition.id;
     request.post({url: endpoint}, function(err, httpResponse, body) {
 
