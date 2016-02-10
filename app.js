@@ -305,3 +305,17 @@ app.get('/api/user', openId.check('openid', /profile|email/), openId.use({models
 clientModel.findOne({id: 'g0_9uVoeK4b048a'}, function(err, client) {
   console.info(err, client);
 })
+
+//// test consent page
+//app.get('/c', function(req, res) {
+//  var scopes = {};
+//  scopes['openid'] = {explain: 'Informs the Authorization Server that the Client is making an OpenID Connect request.'};
+//  scopes['profile'] = {explain: 'Access to the End-User\'s default profile Claims.'};
+//
+//  scopes['email'] = {explain: 'Access to the email and email_verified Claims.'};
+//  scopes['address'] = {explain: 'Access to the address Claim.'};
+//  scopes['phone'] =  {explain: 'Access to the phone_number and phone_number_verified Claims.'};
+//  scopes['offline_access'] = {explain: 'Grants access to the End-User\'s UserInfo Endpoint even when the End-User is not present (not logged in).'};
+//
+//  res.render('consent', {scopes: scopes});
+//});

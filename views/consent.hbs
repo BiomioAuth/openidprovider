@@ -1,17 +1,15 @@
-<div class="row">
-    <h1 class="text-center">Consent</h1>
+<div id="consent">
+    <h1>Consent</h1>
 
-    <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
-      <ul>
-      {{#each scopes}}
-        <li><strong>{{@key}}</strong> &mdash; {{explain}}</li>
-      {{/each}}
-      </ul>
-        <div class="form-group">
-            <div class="col-sm-offset-2 col-sm-10">
-                <input type="submit" name="accept" class="btn btn-default" value="Accept">
-                <input type="submit" name="cancel" class="btn btn-danger" value="Cancel" >
-            </div>
+    <form method="post">
+        <ul>
+          {{#each scopes}}
+              <li><strong>{{@key}}</strong> &mdash; {{explain}}</li>
+          {{/each}}
+        </ul>
+        <div class="btn-custom-group">
+            <input type="submit" name="accept" class="btn btn-custom-accept" value="Accept">
+            <input type="submit" name="cancel" class="btn btn-custom-cancel" value="Cancel">
         </div>
     </form>
 
