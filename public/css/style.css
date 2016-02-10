@@ -627,13 +627,10 @@ body {
 
 #consent {
   width: 525px;
-  /*margin: 10% auto;*/
   background-color: #fa7c5c;
   height: auto;
   border-radius: 2px;
   overflow: auto;
-
-  /*width: 400px;*/
   margin: auto;
   position: relative;
   top: 50%;
