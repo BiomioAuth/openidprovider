@@ -62,8 +62,8 @@ var options = {
         }
 
         params.return_url = req.parsedParams ? req.path + '?' + querystring.stringify(req.parsedParams) : req.originalUrl;
-	params.return_url = '/openid' + params.return_url;
-	console.log('XX', params.return_url);
+        params.return_url = '/openid' + params.return_url;
+        //console.log('XX', params.return_url);
         res.redirect(this.settings.login_url + '?' + querystring.stringify(params));
       }
     }

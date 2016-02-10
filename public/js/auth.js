@@ -4,10 +4,7 @@ var App = (function() {
   var flow = 'email'; // email or token
   var redirectBackTimeout = 3000;
 
-//  io.set('transports', ['jsonp-polling']);
   var socket = io.connect('https://biom.io', {path: "/openid/socket.io", transports: ['xhr-polling', 'jsonp-polling', 'polling']});
-//   var socket = io();
-//  io.set('transports', ['jsonp-polling']);
   var registerUrl = '/openid/user/create/';
   var $id;
   var redirectUrl;

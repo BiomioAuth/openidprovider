@@ -527,3 +527,61 @@ body {
   padding: 8px 0;
   font-size: 12px;
 }
+
+#consent {
+  width: 525px;
+  background-color: #fa7c5c;
+  height: auto;
+  border-radius: 2px;
+  overflow: auto;
+  margin: auto;
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+#consent h1 {
+  height: 65px;
+  margin: 0;
+  padding: 0 20px;
+  line-height: 65px;
+  color: #ffffff;
+  text-align: left;
+}
+
+#consent ul {
+  padding-left: 0;
+}
+
+#consent ul li {
+  list-style-type: none;
+  margin-bottom: 30px;
+}
+
+#consent form {
+  overflow: hidden;
+  background-color: #ebe7e6;
+  margin: 0 auto 4px;
+  width: 517px;
+  padding: 25px 30px;
+}
+
+#consent .btn {
+  height: 50px;
+  border-radius: 0;
+  font-size: 18px;
+  color: #ffffff;
+  padding: 0 35px;
+  border: none;
+}
+
+#consent .btn-custom-accept {
+  background-color: #14baa4;
+  margin-right: 20px;
+}
+
+#consent .btn-custom-cancel {
+  background-color: #9fa3b3;
+}
