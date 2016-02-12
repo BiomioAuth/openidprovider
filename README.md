@@ -2,28 +2,35 @@
 
 ## Install
 
-- `npm install pm2@latest -g` - install pm2 globally
+- `sudo npm install pm2@latest -g` - install pm2 globally
 
 - `npm install` - it runs npm & bower install
 
 ## Run
 
-- `pm2 start ecosystem.json` - ut runs application in local environment
+- `pm2 start ecosystem.json` - it runs application in local environment
+
+
+## Deploy to remote server (biom.io)
+
+- `pm2 deploy ecosystem.json development setup` - it needs only once, it creates folder structure
+
+- `pm2 deploy ecosystem.json production setup` - it needs only once, it creates folder structure
+
+- `commit your last changes to the repository`
+
+- `pm2 deploy ecosystem.json development` - deploy last revision of code to the development env and restart app
 
 
 ## Run in production
 
-- `sudo nf export -o /etc/init -a openidprovider -l /home/biomio/openid/logs` - it install upstart scripts, run this only once! or if you change .env file
+- `sudo npm install pm2@latest -g` - install pm2 globally
 
-- `sudo start openidprovider` - start service
+- `pm2 list` - display status of all applications
 
-- `sudo status openidprovider` - status of service
+- `pm2 logs` - display logs in real time mode
 
-- `sudo restart openidprovider` - restart service
-
-- `sudo stop openidprovider` - stop service
-
-- `tail -f /home/biomio/openid/logs/openidprovider/web-1.log` - logs
+- `pm2 monit` - monitor application
 
 
 ## Useful commands
