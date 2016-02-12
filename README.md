@@ -2,13 +2,13 @@
 
 ## Install
 
-- Create file *.env* from *.env.example* and update configuration in it
+- `npm install pm2@latest -g` - install pm2 globally
 
 - `npm install` - it runs npm & bower install
 
 ## Run
 
-- `nf start`
+- `pm2 start ecosystem.json` - ut runs application in local environment
 
 
 ## Run in production

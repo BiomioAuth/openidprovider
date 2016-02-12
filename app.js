@@ -301,10 +301,12 @@ app.get('/api/user', openId.check('openid', /profile|email/), openId.use({models
 
 });
 
+
+
 // TEST API
-clientModel.findOne({id: 'g0_9uVoeK4b048a'}, function(err, client) {
-  console.info(err, client);
-})
+//clientModel.findOne({id: 'g0_9uVoeK4b048a'}, function(err, client) {
+//  console.info(err, client);
+//})
 
 //// test consent page
 //app.get('/c', function(req, res) {

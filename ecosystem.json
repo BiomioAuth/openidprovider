@@ -21,11 +21,11 @@
     },
     "env_development": {
       "NODE_ENV": "development",
-      "HOST": "http://localhost:5000",
+      "HOST": "http://localhost:5009",
       "DEBUG": "biomio:*",
       "REDIS_HOST": "127.0.0.1",
       "REDIS_PORT": "6380",
-      "PORT": "5000",
+      "PORT": "5009",
       "GATE_URL": "wss://gate.biom.io:8090/websocket",
       "API_URL": "https://biom.io:4433/php/commands.php",
       "APP_ID": "a8574879896db2f989c3a40155399531",
@@ -42,32 +42,32 @@
       "API_URL": "https://biom.io/php/commands.php",
       "APP_ID": "b0ced4ecb22ceb8ee0116804b2f87256",
       "APP_SECRET_FILE": "private-production.key"
+    }
+  }],
+  "deploy" : {
+    "production": {
+      "user": "biomio",
+      "host": ["104.130.28.127"],
+      "ref": "origin/master",
+      "repo": "git@bitbucket.org/biomio/openidprovider.git",
+      "path": "/home/biomio/nodeapps/openid-provider-production",
+      "pre-deploy-local": "echo 'This is a local executed command'",
+      "post-deploy": "npm install ; pm2 startOrRestart ecosystem.json --env production",
+      "env": {
+        "NODE_ENV": "production"
+      }
     },
-    "deploy" : {
-      "production": {
-        "user": "biomio",
-        "host": ["212.83.163.1"],
-        "ref": "origin/master",
-        "repo": "git@bitbucket.org:biomio/biomio-node.git",
-        "path": "/var/www/production",
-        "pre-deploy-local": "echo 'This is a local executed command'",
-        "post-deploy": "npm install ; pm2 startOrRestart ecosystem.json --env production",
-        "env": {
-          "NODE_ENV": "production"
-        }
-      },
-      "development": {
-        "user": "biomio",
-        "host": ["212.83.163.1"],
-        "ref": "origin/development",
-        "repo": "git@bitbucket.org:biomio/biomio-node.git",
-        "path": "/var/www/production",
-        "pre-deploy-local": "echo 'This is a local executed command'; echo 'before deploy to development server'",
-        "post-deploy": "npm install ; pm2 startOrRestart ecosystem.json --env development",
-        "env": {
-          "NODE_ENV": "development"
-        }
+    "development": {
+      "user": "biomio",
+      "host": ["104.130.28.127"],
+      "ref": "origin/development",
+      "repo": "git@bitbucket.org/biomio/openidprovider.git",
+      "path": "/home/biomio/nodeapps/openid-provider-development",
+      "pre-deploy-local": "echo 'This is a local executed command'; echo 'before deploy to development server'",
+      "post-deploy": "npm install ; pm2 startOrRestart ecosystem.json --env development",
+      "env": {
+        "NODE_ENV": "development"
       }
     }
-  }]
+  }
 }
