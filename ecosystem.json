@@ -49,7 +49,7 @@
       "user": "biomio",
       "host": ["104.130.28.127"],
       "ref": "origin/master",
-      "repo": "ssh+git@bitbucket.org:biomio/openidprovider.git",
+      "repo": "git@bitbucket.org:biomio/openidprovider.git",
       "path": "/home/biomio/nodeapps/openid-provider-production",
       "pre-deploy-local": "echo 'This is a local executed command'",
       "post-deploy": "npm install ; pm2 startOrRestart ecosystem.json --env production",
