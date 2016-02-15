@@ -17,7 +17,7 @@
       "GATE_URL": "wss://gate.biom.io:8090/websocket",
       "API_URL": "https://biom.io:4433/php/commands.php",
       "APP_ID": "d33e41bdbc3cd534ceb2e87eec5e9852",
-      "APP_SECRET_FILE": "private-development.key"
+      "APP_SECRET_FILE": "private-local.key"
     },
     "env_development": {
       "NODE_ENV": "development",

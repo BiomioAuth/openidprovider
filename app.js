@@ -83,9 +83,9 @@ app.set('port', process.env.PORT || 5000);
 server.listen(app.get('port'));
 
 try {
-  var privateKey = fs.readFileSync(__dirname + '/' + config.appSecretFile).toString();
+  var privateKey = fs.readFileSync(__dirname + '/config/' + config.appSecretFile).toString();
 } catch (e) {
-  console.error('Can\'t find/read file "private.key"!');
+  console.error('Can\'t find/read file '+ __dirname + '/config/' + config.appSecretFile +'!');
   process.exit(1);
 }
 

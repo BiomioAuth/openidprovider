@@ -1,2 +1,0 @@
-#!/bin/sh
-ssh biomio@biom.io 'cd ~/openid/openidprovider; git pull; npm i; sudo restart foreman'
