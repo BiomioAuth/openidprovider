@@ -1,64 +1,288 @@
-<div class="row">
-    <h1 class="text-center">Create user</h1>
+<div id="register" class="dialog-window">
+    <div class="">
+        <form role="form">
+            <div id="step0" style="display: block;">
+              <h1 class="title">Sign up</h1>
+              <div class="form-group col-sm-6" style="margin-top: 25px">
+                  <input type="text" value="" class="form-control registerFirstName" autofocus="" maxlength="50" placeholder="First Name">
+                  <span class="help-block"></span>
+              </div>
 
-    {{#if error}}
-        <div class="text-info text-center bg-info" style="padding: 15px; margin-bottom: 25px;">
-          {{error}}
-        </div>
-    {{/if}}
+              <div class="form-group col-sm-6" style="margin-top: 25px">
+                  <input type="text" value="" class="form-control registerLastName" maxlength="50" placeholder="Last Name">
+                  <span class="help-block"></span>
+              </div>
 
-    {{#if message}}
-        <div class="text-info text-center bg-info" style="padding: 15px; margin-bottom: 25px;">
-          {{message}}
-        </div>
-    {{/if}}
+              <div class="form-group col-sm-12" style="clear: both">
+                  <input type="email" value="" class="form-control registerEmail" placeholder="Email">
+                  <span class="text-danger"></span>
+              </div>
 
-    <div class="text-info text-center bg-info" style="padding: 15px; margin-bottom: 25px;">
-      Please install application <a href="http://biom.io/download/">http://biom.io/download/</a> and fill this form.
+              <div class="form-group col-sm-12 text-center">
+                  <button class="btn btn-lg btn-block btn-primary nextBtn" type="button">Sign up</button>
+                  <span class="text-danger"></span>
+              </div>
+            </div>
+
+            <div id="step1" style="display: none;">
+                <h1 class="title">Mobile app</h1>
+                <p class="sub-title">Download BIOMIO application at the <a href="https://itunes.apple.com/us/app/biomio/id1044562871?ls=1&mt=8" target="_blank" title="download application">iTunes Store</a></p>
+                <a href="https://itunes.apple.com/us/app/biomio/id1044562871?ls=1&mt=8" target="_blank" title="download application"><div class="registerAppLogo"></div></a>
+                <div class="form-group col-sm-12 text-center">
+                    <button class="btn btn-lg btn-block btn-primary nextBtn" type="button">Next</button>
+                    <span class="text-danger"></span>
+                </div>
+            </div>
+
+            <div id="step2" style="display: none;">
+                <h1 class="title">Give identification name to your phone</h1>
+                <div class="form-group col-sm-12">
+                    <input type="text" value="" class="form-control registerPhoneName" placeholder="new device name">
+                    <span class="text-danger"></span>
+                </div>
+                <div class="form-group col-sm-12 text-center">
+                    <button class="btn btn-lg btn-block btn-primary nextBtn" type="button">Next</button>
+                    <span class="text-danger"></span>
+                </div>
+            </div>
+
+            <div id="step3" style="display: none;">
+                <h1 class="title">Verify your mobile phone</h1>
+                <div class="registerQrHolder"></div>
+                <div class="registerQrInfo"></div>
+                <div class="form-group col-sm-12 text-center">
+                    <button class="btn btn-lg btn-block btn-primary nextBtn" type="button">Next</button>
+                    <span class="text-danger"></span>
+                </div>
+            </div>
+
+            <div id="step4" style="display: none;">
+                <h1 class="title">Finish!</h1>
+                <div class="form-group col-sm-6">Great, you are registered user.</div>
+                <div class="form-group col-sm-12 text-center">
+                    <button class="btn btn-lg btn-block btn-primary nextBtn" type="button">Finish</button>
+                    <span class="text-danger"></span>
+                </div>
+            </div>
+        </form>
     </div>
 
-    <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
-        <div class="form-group">
-            <label for="given_name" class="col-sm-3 control-label">Given Name</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" name="given_name" id="given_name" placeholder="Given Name">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="middle_name" class="col-sm-3 control-label">Middle Name</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" name="middle_name" id="middle_name" placeholder="Middle Name">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="family_name" class="col-sm-3 control-label">Family Name</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" name="family_name" id="family_name" placeholder="Family Name">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="email" class="col-sm-3 control-label">Email</label>
-            <div class="col-sm-9">
-                <input type="email" class="form-control" name="email" id="email" placeholder="Email">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="password" class="col-sm-3 control-label">Password</label>
-            <div class="col-sm-9">
-                <input type="password" class="form-control" name="password" id="password" placeholder="Password">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="passConfirm" class="col-sm-3 control-label">Confirm Password</label>
-            <div class="col-sm-9">
-                <input type="password" class="form-control" name="passConfirm" id="passConfirm" placeholder="Confirm Password">
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-sm-offset-3 col-sm-9">
-                <button type="button" class="btn btn-primary">Create</button>
-            </div>
-        </div>
-    </form>
-
 </div>
+<script src="/js/jquery.qrcode.min.js"></script>
+<script>
+
+    var Register = (function() {
+        var self = this;
+        var APIhost = 'https://biom.io:4433/php/login.php';
+        var step = 0;
+        var $email;
+        var $firstName;
+        var $lastName;
+        var $phoneName;
+        var $next;
+        var emailRegex = /\b[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,4}\b/;
+
+        var noop = function(){};
+
+        var init = function() {
+            $email = $('.registerEmail');
+            $firstName = $('.registerFirstName');
+            $lastName = $('.registerLastName');
+            $phoneName = $('.registerPhoneName');
+
+            $next = $('.nextBtn');
+
+            initHandlers();
+        };
+
+        var initHandlers = function() {
+            $next.on('click', next);
+
+            $email.on('change', function () {
+                validateSignUp();
+            });
+        };
+
+        var API = {};
+
+        API.post = function(options) {
+            var data = '';
+            for (var prop in options) {
+                data += '&' + prop + '=' + options[prop];
+            }
+
+            data = data.slice(1);
+            return $.ajax({
+               url: APIhost,
+               type: 'POST',
+               data: data
+            });
+        };
+
+        var validateSignUp = function (done) {
+            done = done || noop;
+
+            var value = $email.val();
+            var $msg = $email.siblings('span');
+
+            if (!emailRegex.test(value)) {
+                $msg.html('E-mail has incorrect formatting');
+                return;
+            }
+
+            // hardcoded because CORS from Alex side
+            done(true);
+            return;
+
+            API.post({cmd: 'check_email', email: value})
+                .done(function (data, textStatus, jqXHR) {
+                    console.info('*', data, textStatus);
+                    if (data.response == "#fine") {
+                        $msg.html('This e-mail is available');
+                        done(true);
+                    } else {
+                        $msg.html('This e-mail is already registered!');
+                        done(false);
+                    }
+
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    $msg.html('Error: ', textStatus);
+                    done(false);
+                });
+
+        }
+
+        var next = function() {
+
+            switch(step) {
+                case 0: // sign up -> install mobile app
+                    validateSignUp(function(valid) {
+                        if (valid) {
+
+                            signUp({
+                                firstName: $firstName.val(),
+                                lastName: $lastName.val(),
+                                email: $email.val()
+                            })
+                                .done(function (data, textStatus, jqXHR) {
+
+                                    /** go to the next step */
+                                    ++step;
+                                    $('#step0, #step1, #step2, #step3, #step4').hide();
+                                    $('#step'+step).show();
+                                });
+
+                        }
+                    })
+
+                    break;
+                case 1: // install mobile app -> give identification name
+                    ++step;
+                    $('#step0, #step1, #step2, #step3, #step4').hide();
+                    $('#step'+step).show();
+                    break;
+                case 2: // give identification name -> verify mobile
+                    addMobileDevice({name: $phoneName.val()})
+                        .done(function (data, textStatus, jqXHR) {
+
+                            /** go to the next step */
+                            ++step;
+                            $('#step0, #step1, #step2, #step3, #step4').hide();
+                            $('#step'+step).show();
+                        });
+
+                    break;
+                case 3: // verify mobile
+                    generateQrCode({id: 1, application: 1})
+                        .done(function (data, textStatus, jqXHR) {
+
+                            /** display QR code */
+
+                            /** check status */
+                        });
+
+                    break;
+                case 4: // finish
+                    console.info('FINISH!, close dialog?');
+                    break;
+                default:
+                    $('#step0').show();
+            }
+
+        };
+
+        var signUp = function(data) {
+
+            return API.post({
+                cmd: 'sign_up',
+                first_name: data.firstName,
+                last_name: data.lastName,
+                email: data.email,
+                type: 'USER'
+            })
+                .done(function (data, textStatus, jqXHR) {
+                    console.info('S:', data, textStatus);
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.info('E:', textStatus, errorThrown);
+                });
+
+        };
+
+        var addMobileDevice = function(data) {
+            API.post({
+                cmd: 'add_mobile_device',
+                name: data.name
+            })
+                .done(function (data, textStatus, jqXHR) {
+                    console.info('S:', data, textStatus);
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.info('E:', textStatus, errorThrown);
+                });
+
+        };
+
+        var generateQrCode = function(data) {
+            API.post({
+                cmd: 'generate_qr_code',
+                id: data.id,
+                application: data.application // 1
+            })
+                .done(function (data, textStatus, jqXHR) {
+                    console.info('S:', data, textStatus);
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.info('E:', textStatus, errorThrown);
+                });
+
+        };
+
+        var checkStatus = function() {
+            API.post({
+                cmd: 'check_status',
+                code: data.code
+            })
+                .done(function (data, textStatus, jqXHR) {
+                    console.info('S:', data, textStatus);
+//                    $msg.html('This e-mail is available');
+//                    done(true);
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.info('E:', textStatus, errorThrown);
+//                    $msg.html('Error: ', textStatus);
+//                    done(false);
+                });
+
+        }
+
+        return {
+            init: init
+        }
+    })();
+
+    $(function() {
+      Register.init();
+    });
+</script>

@@ -682,3 +682,70 @@ body {
 #consent .btn-custom-cancel {
   background-color: #9fa3b3;
 }
+
+.dialog-window {
+  width: 400px;
+  min-height: 400px;
+  border: 1px solid #EFEAEA;
+  margin: auto;
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+
+#register {
+  font-family: 'Roboto Condensed', sans-serif;
+}
+
+#register .title {
+  font-size: 16px;
+  color: #7d899c;
+  text-transform: uppercase;
+  font-weight: 500;
+  border-bottom: 1px solid #7d899c;
+  line-height: 34px;
+}
+
+#register .sub-title {
+  font-size: 16px;
+  text-align: center;
+}
+
+#register input,
+#register button {
+  border-radius: 0;
+}
+
+button.registerBtn {
+  border: none;
+  background: rgba(20, 168, 177, 0.75);
+  color: #ffffff;
+}
+button.registerBtn:hover,
+button.registerBtn:active {
+  background: rgba(250, 126, 92, 0.93);
+  color: #ffffff;
+}
+
+.registerQrHolder {
+  float: left;
+  width: 50%;
+
+}
+
+.registerQrInfo {
+  background-image: url("../qr.png");
+  width: 50%;
+  height: 100px;
+}
+
+.registerAppLogo {
+  background-image: url("../app-icon.png");
+  width: 175px;
+  height: 175px;
+  border-radius: 50px;
+  margin: 25px auto;
+}
