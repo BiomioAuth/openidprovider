@@ -24,9 +24,9 @@ var client = require('./controllers/client');
 var clientModel = require('./services/clientModel');
 var user = require('./controllers/user');
 var auth = require('./controllers/auth');
+var register = require('./controllers/register');
 
 var env = process.env.NODE_ENV || 'production';
-
 
 var options = {
   login_url: '/login',
@@ -156,11 +156,11 @@ var initUsersSocket = function() {
         clientId: clientId
       };
 
-      if (data) {
-        rpcParams.resources = {"front-cam": "640x480"};
-      } else {
-        rpcParams.resources = {"input": ""};
-      }
+      //if (data) {
+      //  rpcParams.resources = {"front-cam": "640x480"};
+      //} else {
+      //  rpcParams.resources = {"input": ""};
+      //}
 
       console.log('run-auth: ', rpcParams);
 
@@ -206,22 +206,22 @@ var initUsersSocket = function() {
       });
 
 
-      // Emulate try:face request from Gate
-      var fields = {
-        sessionId: socket.id,
-        resource: {
-          rProperties: "640x480",
-          rType: 'front-cam'
-        },
-        samples: 2
-      };
-
-      setTimeout(function() {
-        faceTry(io, fields, function(err, result) {
-          console.info('XXXXXX try:face result received: ', err, result.length);
-        });
-      }, 3000);
-      // END Emulate
+      //// Emulate try:face request from Gate
+      //var fields = {
+      //  sessionId: socket.id,
+      //  resource: {
+      //    rProperties: "640x480",
+      //    rType: 'front-cam'
+      //  },
+      //  samples: 2
+      //};
+      //
+      //setTimeout(function() {
+      //  faceTry(io, fields, function(err, result) {
+      //    console.info('XXXXXX try:face result received: ', err, result.length);
+      //  });
+      //}, 3000);
+      //// END Emulate
 
     });
 
@@ -281,7 +281,7 @@ app.get('/user/consent', user.consentForm());
 app.post('/user/consent', openId.consent());
 
 //user creation form
-//app.get('/user/create', user.createForm());
+app.get('/user/create', user.createForm());
 
 app.get('/api/user', openId.check('openid', /profile|email/), openId.use({models: ['access']}), function(req, res) {
 
@@ -301,6 +301,12 @@ app.get('/api/user', openId.check('openid', /profile|email/), openId.use({models
 
 });
 
+/** Proxy methods */
+app.post('/api/register/sign_up', register.signUp);
+app.post('/api/register/add_mobile_device', register.addMobileDevice);
+app.post('/api/register/update_name', register.update);
+app.post('/api/register/generate_device_code', register.generateDeviceCode);
+app.post('/api/register/check_status', register.checkStatus);
 
 
 // TEST API
