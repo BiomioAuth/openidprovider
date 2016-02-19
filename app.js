@@ -110,6 +110,11 @@ var sessionMiddleware = expressSession({
 
 app.use(sessionMiddleware);
 
+app.use(function (req, res, next) {
+  console.info('REQ:', req.method, req.originalUrl);
+  next();
+});
+
 app.set('port', process.env.PORT || 5000);
 
 server.listen(app.get('port'));
