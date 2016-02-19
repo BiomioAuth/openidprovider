@@ -8,7 +8,8 @@ var crypto = require('crypto');
  */
 var Register = (function() {
 
-  var URL = 'https://biom.io:4433/api/register/';
+  //var URL = 'https://biom.io:4433/api/register/';
+  var URL = 'https://biom.io:4433/api/profile.php/';
 
   function getClientKeys(clientId) {
 
@@ -40,7 +41,7 @@ var Register = (function() {
     }
 
     var keys = getClientKeys(clientId);
-    var time = new Date().toUTCString();
+    var time = new Date().getTime();
     var data = {
       time: time,
       public_key: keys.publicKey,
@@ -48,14 +49,12 @@ var Register = (function() {
     };
 
     var hash = generateHmac(JSON.stringify(data), keys.privateKey);
-
     data.hash = hash;
-    console.log('HMAC ', hash);
 
-    request.post({url: URL + 'sign_up', form: data}, function(err, httpResponse, body) {
-      console.log(err, body);
+    request.post({url: URL + 'sign_up', json: true, body: data}, function(err, httpResponse, body) {
+      console.log(err, httpResponse.statusCode, body);
 
-      return res.send(200, body);
+      return res.send(httpResponse.statusCode, err || body);
     });
 
   };
