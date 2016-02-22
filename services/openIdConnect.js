@@ -944,7 +944,7 @@ OpenIDConnect.prototype.token = function () {
           })
           .then(function (obj) {
             //Check if code was issued for client
-            if (params.grant_type != 'client_credentials' && obj.auth.client.key != client_key) {
+            if (params.grant_type != 'client_credentials' && obj.auth.client && obj.auth.client.key != client_key) {
               throw {type: 'error', error: 'invalid_grant', msg: 'The code was not issued for this client.'};
             }
 
@@ -1211,7 +1211,7 @@ OpenIDConnect.prototype.removetokens = function () {
                     });
                     auth.destroy();
                   }
-                  ;
+
                   req.model.access.find({user: access.user})
                     .exec(function (err, accesses) {
                       if (!err && accesses) {
@@ -1219,7 +1219,7 @@ OpenIDConnect.prototype.removetokens = function () {
                           access.destroy();
                         });
                       }
-                      ;
+
                       return next();
                     });
                 });
@@ -1240,4 +1240,4 @@ exports.oidc = function (options) {
 
 exports.defaults = function () {
   return defaults;
-}
+};

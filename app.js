@@ -29,20 +29,20 @@ var register = require('./controllers/register');
 var env = process.env.NODE_ENV || 'production';
 
 var options = {
-  login_url: '/login',
-  consent_url: '/user/consent',
-  connections: {
-    def: {
-      adapter: 'redis',
-      host: config.redis.host,
-      port: config.redis.port
-    }
-  },
-  policies: {
-    loggedIn: auth.loggedInPolicy
-  },
-  client: clientModel, // custom client's model
-  app: app
+    login_url: '/login',
+    consent_url: '/user/consent',
+    connections: {
+        def: {
+            adapter: 'redis',
+            host: config.redis.host,
+            port: config.redis.port
+        }
+    },
+    policies: {
+        loggedIn: auth.loggedInPolicy
+    },
+    client: clientModel, // custom client's model
+    app: app
 };
 
 var openId = require('./services/openIdConnect').oidc(options);
@@ -50,7 +50,7 @@ var textInputTry = require('./services/textInputTry');
 var faceTry = require('./services/faceTry');
 
 if ('development' == app.get('env')) {
-  app.use(errorHandler());
+    app.use(errorHandler());
 }
 
 /* configure template engine */
@@ -61,7 +61,7 @@ app.set('view engine', '.hbs');
 /* set middlewares */
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(cookieParser(config.session.secret));
@@ -69,205 +69,209 @@ app.use(cookieParser(config.session.secret));
 var sessionStore = new rs(config.redis);
 
 var sessionMiddleware = expressSession({
-  store: sessionStore,
-  secret: config.session.secret,
-  resave: true,
-  saveUninitialized: true,
-  cookieParser: cookieParser(config.session.secret)
+    store: sessionStore,
+    secret: config.session.secret,
+    resave: true,
+    saveUninitialized: true,
+    cookieParser: cookieParser(config.session.secret)
 });
 
 app.use(sessionMiddleware);
+
+app.use(function (req, res, next) {
+    console.info('<<<REQ:', req.method, req.originalUrl);
+    next();
+});
 
 app.set('port', process.env.PORT || 5000);
 
 server.listen(app.get('port'));
 
 try {
-  var privateKey = fs.readFileSync(__dirname + '/config/' + config.appSecretFile).toString();
+    var privateKey = fs.readFileSync(__dirname + '/config/' + config.appSecretFile).toString();
 } catch (e) {
-  console.error('Can\'t find/read file '+ __dirname + '/config/' + config.appSecretFile +'!');
-  process.exit(1);
+    console.error('Can\'t find/read file ' + __dirname + '/config/' + config.appSecretFile + '!');
+    process.exit(1);
 }
 
 console.info(config);
 
 var gateOptions = {
-  gateURL: config.gate.websocketUrl,
-  appId: config.appId,
-  appKey: privateKey,
-  appType: 'hybrid',
-  /* optional parameters */
-  osId: 'linux',
-  headerOid: 'clientHeader',
-  devId: 'open_id_provider'
-}
+    gateURL: config.gate.websocketUrl,
+    appId: config.appId,
+    appKey: privateKey,
+    appType: 'hybrid',
+    /* optional parameters */
+    osId: 'linux',
+    headerOid: 'clientHeader',
+    devId: 'open_id_provider'
+};
 
 /** establish connection to Gate */
 var conn = new BiomioNode(gateOptions);
 
-conn.on('ready', function() {
-  console.info('Connection to Gate is ready!');
+conn.on('ready', function () {
+    console.info('Connection to Gate is ready!');
 
-  /* run socket to enduser */
-  initUsersSocket();
+    /* run socket to enduser */
+    initUsersSocket();
 });
 
-conn.on('getResources', function(done) {
-  // @todo: looks like we will not use this handler in feature
-  done(config.resources);
+conn.on('getResources', function (done) {
+    // @todo: looks like we will not use this handler in feature
+    done(config.resources);
 });
 
-conn.on('try:face', function(data, done) {
-  console.info("TRY: \n", data);
+conn.on('try:face', function (data, done) {
+    console.info("TRY: \n", data);
 
-  //resource =                 {
-  //  rProperties = 1280x720;
-  //  rType = "front-cam";
-  //};
-  //samples = 1;
-  //tType = face;
+    //resource =                 {
+    //  rProperties = 1280x720;
+    //  rType = "front-cam";
+    //};
+    //samples = 1;
+    //tType = face;
 
 
-  faceTry(io, data, done);
+    faceTry(io, data, done);
 });
 
-conn.on('try:text_input', function(data, done) {
-  console.info("TRY: \n", data);
-  textInputTry(io, data, done);
+conn.on('try:text_input', function (data, done) {
+    console.info("TRY: \n", data);
+    textInputTry(io, data, done);
 });
 
 /**
  * Handle requests from users (frontend part)
  */
-var initUsersSocket = function() {
-  io.on('connection', function(socket) {
-    console.info('user connected: ', socket.id);
+var initUsersSocket = function () {
+    io.on('connection', function (socket) {
+        console.info('user connected: ', socket.id);
 
 
-    /** Get response from user with information of webcamera */
-    socket.on('resource:face', function (data) {
-      console.info('XXXXXX resource:face', data);
+        /** Get response from user with information of webcamera */
+        socket.on('resource:face', function (data) {
+            console.info('XXXXXX resource:face', data);
 
-      var sessionId = socket.id;
-      var clientId = 'test.open.id.provider@gmail.com'; //hardcoded for now, it should goes from url request
+            var sessionId = socket.id;
+            var clientId = 'test.open.id.provider@gmail.com'; //hardcoded for now, it should goes from url request
 
-      var rpcParams = {
-        sessionId: sessionId,
-        clientId: clientId
-      };
+            var rpcParams = {
+                sessionId: sessionId,
+                clientId: clientId
+            };
 
-      //if (data) {
-      //  rpcParams.resources = {"front-cam": "640x480"};
-      //} else {
-      //  rpcParams.resources = {"input": ""};
-      //}
+            //if (data) {
+            //  rpcParams.resources = {"front-cam": "640x480"};
+            //} else {
+            //  rpcParams.resources = {"input": ""};
+            //}
 
-      console.log('run-auth: ', rpcParams);
+            console.log('run-auth: ', rpcParams);
 
-      /* callback will be called few times: inprogress, completed */
-      conn.rpc('auth', rpcParams, function(message) {
-        console.log("RUN AUTH STATUS: \n" + JSON.stringify(message, null, 2));
+            /* callback will be called few times: inprogress, completed */
+            conn.rpc('auth', rpcParams, function (message) {
+                console.log("RUN AUTH STATUS: \n" + JSON.stringify(message, null, 2));
 
-        switch(message.msg.rpcStatus) {
-          case 'completed':
-            var data = socket.handshake || socket.request;
-            var cookies = cookie.parse(data.headers.cookie);
-            var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
+                switch (message.msg.rpcStatus) {
+                    case 'completed':
+                        var data = socket.handshake || socket.request;
+                        var cookies = cookie.parse(data.headers.cookie);
+                        var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
 
-            sessionStore.get(sid, function (error, sess) {
-              console.info('session get: ', error, sess);
-              sess.user = conn._on_behalf_of;
+                        sessionStore.get(sid, function (error, sess) {
+                            console.info('session get: ', error, sess);
+                            sess.user = conn._on_behalf_of;
 
-              /** LDAP agent can return some information of user - save it in the user's session */
-              if (typeof message.msg.user_data !== 'undefined') {
-                sess.userData = message.msg.user_data;
-              }
+                            /** LDAP agent can return some information of user - save it in the user's session */
+                            if (typeof message.msg.user_data !== 'undefined') {
+                                sess.userData = message.msg.user_data;
+                            }
 
-              sessionStore.set(sid, sess, function (error, result) {
-                error && console.error(error);
-              });
+                            sessionStore.set(sid, sess, function (error, result) {
+                                error && console.error(error);
+                            });
+                        });
+
+                        break;
+                    case 'inprogress':
+
+                        if (!message.msg.data.timeout) {
+                            io.emit('state-timer', message.msg);
+                        }
+
+                        break;
+                    case 'fail':
+                        console.error(message.msg.data.error);
+                        break;
+                    default:
+                        throw Error('Unhandled RPC status: ', message.msg.rpcStatus);
+                }
+
             });
 
-            break;
-          case 'inprogress':
 
-            if (!message.msg.data.timeout) {
-              io.emit('state-timer', message.msg);
-            }
+            //// Emulate try:face request from Gate
+            //var fields = {
+            //  sessionId: socket.id,
+            //  resource: {
+            //    rProperties: "640x480",
+            //    rType: 'front-cam'
+            //  },
+            //  samples: 2
+            //};
+            //
+            //setTimeout(function() {
+            //  faceTry(io, fields, function(err, result) {
+            //    console.info('XXXXXX try:face result received: ', err, result.length);
+            //  });
+            //}, 3000);
+            //// END Emulate
 
-            break;
-          case 'fail':
-            console.error(message.msg.data.error);
-            break;
-          default:
-            throw Error('Unhandled RPC status: ', message.msg.rpcStatus);
-        }
-
-      });
-
-
-      //// Emulate try:face request from Gate
-      //var fields = {
-      //  sessionId: socket.id,
-      //  resource: {
-      //    rProperties: "640x480",
-      //    rType: 'front-cam'
-      //  },
-      //  samples: 2
-      //};
-      //
-      //setTimeout(function() {
-      //  faceTry(io, fields, function(err, result) {
-      //    console.info('XXXXXX try:face result received: ', err, result.length);
-      //  });
-      //}, 3000);
-      //// END Emulate
-
-    });
+        });
 
 
-    socket.on('run-auth', function(email) {
+        socket.on('run-auth', function (email) {
 
-      /* @todo: remember email (if exists) in user socket session */
+            /* @todo: remember email (if exists) in user socket session */
 
-      /** display "wait" screen */
-      io.emit('state-wait');
+            /** display "wait" screen */
+            io.emit('state-wait');
 
-      /** Get webcamera resolutions, if it exists and enduser allows access to it */
-      io.emit('resource:face');
+            /** Get webcamera resolutions, if it exists and enduser allows access to it */
+            io.emit('resource:face');
+
+        });
+
+        socket.on('error', function (response) {
+            console.warn('SOCKET ERROR: ', response);
+        });
+
+        socket.on('disconnect', function () {
+            console.log('user disconnected: ', socket.id);
+        });
 
     });
-
-    socket.on('error', function(response) {
-      console.warn('SOCKET ERROR: ', response);
-    });
-
-    socket.on('disconnect', function() {
-      console.log('user disconnected: ', socket.id);
-    });
-
-  });
 };
-
 
 
 /**
  * Common routes
  */
 
-app.get('/', function(req, res) {
-  var user = req.session.user || null;
-  res.render('index', {user: user});
+app.get('/', function (req, res) {
+    var user = req.session.user || null;
+    res.render('index', {user: user});
 });
 
 app.get('/login', auth.login());
 
-app.all('/logout', openId.removetokens(), function(req, res) {
-  sessionStore.destroy(req.session.id, function (error, sess) {
-    console.info('session destroy: ', error, sess);
-    req.session.destroy();
-    res.redirect('/');
-  });
+app.all('/logout', openId.removetokens(), function (req, res) {
+    sessionStore.destroy(req.session.id, function (error, sess) {
+        console.info('session destroy: ', error, sess);
+        req.session.destroy();
+        res.redirect('/');
+    });
 });
 
 //authorization endpoint
@@ -283,21 +287,21 @@ app.post('/user/consent', openId.consent());
 //user creation form
 app.get('/user/create', user.createForm());
 
-app.get('/api/user', openId.check('openid', /profile|email/), openId.use({models: ['access']}), function(req, res) {
+app.get('/api/user', openId.check('openid', /profile|email/), openId.use({models: ['access']}), function (req, res) {
 
-  var access_token = req.param('access_token');
-  if (!access_token) {
-    access_token = (req.headers['authorization'] || '').indexOf('Bearer ') === 0 ? req.headers['authorization'].replace('Bearer', '').trim() : false;
-  }
-  req.model.access
-    .findOne({token: access_token})
-    .exec(function (err, access) {
-      if (!err && access) {
-        res.send({user: access.user});
-      } else {
-        res.send(400, {})
-      }
-    });
+    var access_token = req.param('access_token');
+    if (!access_token) {
+        access_token = (req.headers['authorization'] || '').indexOf('Bearer ') === 0 ? req.headers['authorization'].replace('Bearer', '').trim() : false;
+    }
+    req.model.access
+        .findOne({token: access_token})
+        .exec(function (err, access) {
+            if (!err && access) {
+                res.send({user: access.user});
+            } else {
+                res.send(400, {})
+            }
+        });
 
 });
 
