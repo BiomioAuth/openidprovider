@@ -21,19 +21,31 @@
     },
     "env_development": {
       "NODE_ENV": "development",
-      "HOST": "http://localhost:5009",
+      "HOST": "http://localhost:5000",
       "DEBUG": "biomio:*",
       "REDIS_HOST": "10.209.33.61",
       "REDIS_PORT": "6380",
-      "PORT": "5009",
+      "PORT": "5000",
       "GATE_URL": "wss://gate.biom.io:8090/websocket",
       "API_URL": "https://biom.io:4433/php/commands.php",
       "APP_ID": "a8574879896db2f989c3a40155399531",
       "APP_SECRET_FILE": "private-development.key"
     },
+    "env_development2": {
+      "NODE_ENV": "development2",
+      "HOST": "http://localhost:5006",
+      "DEBUG": "biomio:*",
+      "REDIS_HOST": "10.209.33.61",
+      "REDIS_PORT": "6380",
+      "PORT": "5006",
+      "GATE_URL": "wss://gate.biom.io:9090/websocket",
+      "API_URL": "https://biom.io:4466/php/commands.php",
+      "APP_ID": "a8574879896db2f989c3a40155399531",
+      "APP_SECRET_FILE": "private-development.key"
+    },
     "env_production" : {
       "NODE_ENV": "production",
-      "HOST": "http://localhost:5000",
+      "HOST": "http://localhost:5001",
       "DEBUG": "biomio:info",
       "REDIS_HOST": "10.209.33.61",
       "REDIS_PORT": "6379",
@@ -67,6 +79,18 @@
       "post-deploy": "npm install ; pm2 startOrRestart ecosystem.json --env development",
       "env": {
         "NODE_ENV": "development"
+      }
+    },
+    "development2": {
+      "user": "biomio",
+      "host": ["104.130.28.127"],
+      "ref": "origin/development",
+      "repo": "git@bitbucket.org:biomio/openidprovider.git",
+      "path": "/home/biomio/nodeapps/openid-provider-development2",
+      "pre-deploy-local": "echo 'This is a local executed command'; echo 'before deploy to development server'",
+      "post-deploy": "npm install ; pm2 startOrRestart ecosystem.json --env development2",
+      "env": {
+        "NODE_ENV": "development2"
       }
     }
   }
