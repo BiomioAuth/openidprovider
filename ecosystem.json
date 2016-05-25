@@ -1,6 +1,6 @@
 {
   "apps" : [{
-    "name": "openid-provider",
+    "name": "openid-provider-development",
     "script": "app.js",
     "args": [],
     "watch": true,
@@ -21,29 +21,74 @@
     },
     "env_development": {
       "NODE_ENV": "development",
-      "HOST": "http://localhost:5009",
+      "HOST": "http://localhost:5000",
       "DEBUG": "biomio:*",
       "REDIS_HOST": "10.209.33.61",
       "REDIS_PORT": "6380",
-      "PORT": "5009",
+      "PORT": "5000",
       "GATE_URL": "wss://gate.biom.io:8090/websocket",
       "API_URL": "https://biom.io:4433/php/commands.php",
       "APP_ID": "a8574879896db2f989c3a40155399531",
       "APP_SECRET_FILE": "private-development.key"
     },
     "env_production" : {
-      "NODE_ENV": "production",
+      "NODE_ENV": "development",
       "HOST": "http://localhost:5000",
-      "DEBUG": "biomio:info",
+      "DEBUG": "biomio:*",
       "REDIS_HOST": "10.209.33.61",
-      "REDIS_PORT": "6379",
-      "PORT": "5001",
-      "GATE_URL": "wss://gate.biom.io:8080/websocket",
-      "API_URL": "https://biom.io/php/commands.php",
-      "APP_ID": "b0ced4ecb22ceb8ee0116804b2f87256",
-      "APP_SECRET_FILE": "private-production.key"
+      "REDIS_PORT": "6380",
+      "PORT": "5000",
+      "GATE_URL": "wss://gate.biom.io:8090/websocket",
+      "API_URL": "https://biom.io:4433/php/commands.php",
+      "APP_ID": "a8574879896db2f989c3a40155399531",
+      "APP_SECRET_FILE": "private-development.key"
     }
-  }],
+  },
+    {
+      "name": "openid-provider-development2",
+      "script": "app.js",
+      "args": [],
+      "watch": true,
+      "node_args": "",
+      "merge_logs": true,
+      "cwd": "",
+      "env": {
+        "NODE_ENV": "development",
+        "HOST": "http://localhost:5006",
+        "DEBUG": "biomio:*",
+        "REDIS_HOST": "127.0.0.1",
+        "REDIS_PORT": "6380",
+        "PORT": "5006",
+        "GATE_URL": "wss://gate.biom.io:9090/websocket",
+        "API_URL": "https://biom.io:44366/php/commands.php",
+        "APP_ID": "d33e41bdbc3cd534ceb2e87eec5e9852",
+        "APP_SECRET_FILE": "private-local.key"
+      },
+      "env_development": {
+        "NODE_ENV": "development",
+        "HOST": "http://localhost:5006",
+        "DEBUG": "biomio:*",
+        "REDIS_HOST": "10.209.33.61",
+        "REDIS_PORT": "6380",
+        "PORT": "5006",
+        "GATE_URL": "wss://gate.biom.io:9090/websocket",
+        "API_URL": "https://biom.io:4466/php/commands.php",
+        "APP_ID": "a8574879896db2f989c3a40155399531",
+        "APP_SECRET_FILE": "private-development.key"
+      },
+      "env_production": {
+        "NODE_ENV": "production",
+        "HOST": "http://localhost:5006",
+        "DEBUG": "biomio:*",
+        "REDIS_HOST": "10.209.33.61",
+        "REDIS_PORT": "6380",
+        "PORT": "5006",
+        "GATE_URL": "wss://gate.biom.io:9090/websocket",
+        "API_URL": "https://biom.io:4466/php/commands.php",
+        "APP_ID": "a8574879896db2f989c3a40155399531",
+        "APP_SECRET_FILE": "private-development.key"
+      }
+    }],
   "deploy" : {
     "production": {
       "user": "biomio",
