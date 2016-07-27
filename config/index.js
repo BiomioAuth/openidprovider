@@ -6,18 +6,17 @@ module.exports = {
   session: {
     secret: "is2Dio5phax0uuhi",
     cookie: "connect.sid",
-    ttl: 60
+    ttl: 1
   },
   gate: {
     websocketUrl: process.env.GATE_URL
   },
-  api: process.env.API_URL,
   appId: process.env.APP_ID,
   appSecretFile: process.env.APP_SECRET_FILE,
   resources: [
     {
       rProperties: "",
-      rType: "input"
+      rType: "fp-scanner"
     }
   ]
 }

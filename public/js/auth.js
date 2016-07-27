@@ -3,8 +3,9 @@ var App = (function() {
 
   var flow = 'email'; // email or token
   var redirectBackTimeout = 3000;
+
   var socket = io();
-  var registerUrl = '/user/create/';
+  var registerUrl = '/openid/user/create/';
   var $id;
   var redirectUrl;
   var $messageHolder;
@@ -102,7 +103,7 @@ var App = (function() {
       clearMessage();
       hideTimer();
       var id = $id.val();
-      //socket.emit('check-token', id);
+      socket.emit('check-token', id);
       socket.emit('run-auth', id);
     } else {
       clearMessage();

@@ -1,0 +1,39 @@
+<div id="auth">
+    <h1>Authorizing</h1>
+    <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
+        <div class="form-group">
+            <div class="col-sm-10">
+                <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{url}}">
+                <input type="hidden" class="form-control" name="token" id="token" value="{{externalToken}}">
+            </div>
+        </div>
+    </form>
+
+    <div>
+        <div id="timer"></div>
+        <div class="message__holder">
+            <div id="message"></div>
+        </div>
+        <div class="footer">
+            <img class="footer__logo" src="footer-logo.png" alt="biomio logo" title="" />
+            <p class="footer__text">Multi-Factor, Password-Optional Authentication Anywhere, Everywhere</p>
+        </div>
+    </div>
+
+
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+    $(function () {
+        App.init({
+            flow: 'token',
+            idHolder: $('#token'),
+            messageHolder: $('#message'),
+            timerHolder:  $('#timer'),
+            redirectUrl: $('#redirectUrl').val()
+        });
+
+        App.run();
+    });
+</script>
