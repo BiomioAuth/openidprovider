@@ -11,37 +11,28 @@ var App = (function() {
   var $messageHolder;
   var $timer;
   var timerInstance;
-  var $element = null;
 
   var init = function(options) {
-    $element = options.$element;
-
     flow = options.flow === 'token' ? 'token' : 'email';
     $id = options.idHolder;
     redirectUrl = options.redirectUrl;
     $messageHolder = options.messageHolder;
     $timer = options.timerHolder;
 
-    initDOM();
-
-    setTimer(function() {
-      initSocket();
-    }, 1000)
-
-  };
-
-  var initDOM = function() {
-    var html = {};
-    html.timer = $("<div />", {id: "timer"});
-    html.holder = $("<div />", {class: "message__holder"})
-      .append("<div />", {id: "message", class: "message"});
-
-    $element
-      .append(html.timer)
-      .append(html.holder);
+    initSocket();
   };
 
   var initSocket = function() {
+    socket.on('check-token', function (response) {
+      console.info('check-token: ', response);
+      if (response) {
+        console.info('run auth');
+        socket.emit('run-auth', $id.val());
+      } else {
+        register();
+      }
+    });
+
     socket.on('status', function (response) {
       console.info('status: ', response);
 
@@ -77,25 +68,19 @@ var App = (function() {
     });
   };
 
-  var run = function(option) {
+  var run = function() {
     console.info('run');
     var id = $id.val();
-
-    option.msg = "Open Biomio application on your phone to proceed";
-    showMessage(option.msg);
-    setTimer(option.timeout);
-
     /* validate form */
-    //if (!id) {
-    //  alert('Email can`t be empty!');
-    //  return false;
-    //}
+    if (!id) {
+      alert('Email can`t be empty!');
+      return false;
+    }
 
     /* hide form */
-    //$('form').fadeOut();
+    $('form').fadeOut();
 
-    //socket.emit('check-token', id);
-    //socket.emit('run-auth', id);
+    socket.emit('check-token', id);
   };
 
   var tryAgain = function() {
@@ -104,7 +89,6 @@ var App = (function() {
       hideTimer();
       var id = $id.val();
       socket.emit('check-token', id);
-      socket.emit('run-auth', id);
     } else {
       clearMessage();
       hideTimer();

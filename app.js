@@ -142,7 +142,6 @@ var gateOptions = {
   devId: 'node_js_lib'
 }
 
-
 io.on('connection', function(socket) {
   console.info('a user connected');
 
@@ -157,7 +156,6 @@ io.on('connection', function(socket) {
     }
 
     var conn = new BiomioNode(externalToken, gateOptions, function() {
-
       conn.user_exists(function(exists) {
         console.info('user exists ', exists);
         io.emit('check-token', exists);

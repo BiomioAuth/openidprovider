@@ -24,7 +24,7 @@ var login = function(req, res, next) {
     }
 
     if (externalToken) {
-      res.render('auth', {
+      res.render('checkToken', {
         externalToken: externalToken,
         url: returnURL
       });
