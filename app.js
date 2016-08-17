@@ -142,7 +142,7 @@ var gateOptions = {
   devId: 'node_js_lib'
 }
 
-
+var socketConnections = {};
 io.on('connection', function(socket) {
   console.info('a user connected');
 
@@ -156,7 +156,7 @@ io.on('connection', function(socket) {
       delete connections[socket.id];
     }
 
-    var conn = new BiomioNode(externalToken, gateOptions, function() {
+    var conn = new BiomioNode(externalToken, '', gateOptions, function() {
 
       conn.user_exists(function(exists) {
         console.info('user exists ', exists);
@@ -200,6 +200,10 @@ io.on('connection', function(socket) {
       console.warn('EXCEPTION: ', ex);
     }
 
+  });
+
+  socket.on('session', function(id) {
+    socketConnections[id] = socket;
   });
 
   socket.on('error', function(response) {
@@ -256,3 +260,33 @@ app.get('/client/register', oidc.use('client'), client.registerForm());
 
 //app.post('/client/register', oidc.use('client'), client.registerAction());
 app.get('/client/register', client.registerAction());
+
+
+app.post('/session/:sessionID', function(req, res) {
+  var conn = new BiomioNode('', req.body['app_id'], gateOptions, function() {
+    conn.get_user(function(result) {
+      if (_.isObject(result)) {
+        if (result.status === 'completed') {
+          var data = socket.handshake || socket.request;
+          var cookies = cookie.parse(data.headers.cookie);
+          var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
+
+          sessionStore.get(sid, function (error, sess) {
+            sess.user = conn._on_behalf_of;
+
+            sessionStore.set(sid, sess, function (error, result) {
+              error && console.error(error);
+            });
+          });
+        }
+        if (result.status != 'in_progress') {
+          conn.finish()
+        }
+        socketConnections[req.params.sessionID].emit('status', result);
+      } else if (result) {
+        socketConnections[req.params.sessionID].emit('user-found', result);
+      }
+    })
+  });
+  res.send();
+});

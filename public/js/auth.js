@@ -11,6 +11,7 @@ var App = (function() {
   var $messageHolder;
   var $timer;
   var timerInstance;
+  var sessionID;
 
   var init = function(options) {
     flow = options.flow === 'token' ? 'token' : 'email';
@@ -18,6 +19,8 @@ var App = (function() {
     redirectUrl = options.redirectUrl;
     $messageHolder = options.messageHolder;
     $timer = options.timerHolder;
+    $qr = options.qrHolder;
+    sessionID = options.sessionID;
 
     initSocket();
   };
@@ -66,6 +69,14 @@ var App = (function() {
       }
 
     });
+
+    socket.on('user-found', function(user) {
+      $('.message__holder').show();
+      $timer.show();
+      $qr.hide();
+      $id.val(user);
+    });
+    socket.emit('session', sessionID);
   };
 
   var run = function() {
@@ -78,7 +89,9 @@ var App = (function() {
     }
 
     /* hide form */
-    $('form').fadeOut();
+    $('.message__holder').show();
+    $timer.show();
+    $qr.hide();
 
     socket.emit('check-token', id);
   };

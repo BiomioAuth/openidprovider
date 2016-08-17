@@ -21,7 +21,6 @@ var validateFail = function (err, req, res, next) {
   res.redirect(req.path);
 };
  */
-
 var logout = function(req, res, next) {
   return function(req, res, next) {
     //req.session.destroy();
@@ -32,10 +31,9 @@ var logout = function(req, res, next) {
 
 var login = function(req, res, next) {
   return function(req, res, next) {
-
     var externalToken = req.query['external_token'];
     var redirectURI = req.path;
-
+    var sessionID = req.sessionID;
     var returnURL = req.query['return_url'];
 
     if (returnURL) {
@@ -58,8 +56,10 @@ var login = function(req, res, next) {
       });
     } else {
       res.render('login', {
-        url: returnURL
-      });
+        url: returnURL,
+        sessionID: sessionID,
+        qrUrl: 'http://biom.io:' + process.env.PORT + '/session/' + sessionID
+     });
     }
   }
 };
