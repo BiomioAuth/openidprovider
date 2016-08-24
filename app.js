@@ -267,7 +267,7 @@ app.post('/session/:sessionID', function(req, res) {
     conn.get_user(function(result) {
       if (_.isObject(result)) {
         if (result.status === 'completed') {
-          var data = socket.handshake || socket.request;
+          var data = socketConnections[req.params.sessionID].handshake || socketConnections[req.params.sessionID].request;
           var cookies = cookie.parse(data.headers.cookie);
           var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
 
