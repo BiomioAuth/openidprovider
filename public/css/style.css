@@ -472,11 +472,11 @@ body {
   color: #ffffff;
   background-color: #fa7c5c;
   font-size: 30px;
-  line-height: 66px;
+  line-height: 50px;
   font-weight: 300;
   text-align: center;
   width: 400px;
-  height: 66px;
+  height: 50px;
 }
 
 #timer {
@@ -543,10 +543,10 @@ body {
 }
 
 #consent h1 {
-  height: 65px;
+  height: 50px;
   margin: 0;
   padding: 0 20px;
-  line-height: 65px;
+  line-height: 50px;
   color: #ffffff;
   text-align: left;
 }
@@ -584,4 +584,26 @@ body {
 
 #consent .btn-custom-cancel {
   background-color: #9fa3b3;
+}
+
+
+#email {
+  width: 50%;
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+}
+
+#formAndQr {
+  margin-top: 12px;
+  margin-bottom: 20px;
+}
+
+#qrcode {
+  margin-top: 15px;
+  padding-left: 35px;
+}
+
+#signInForm {
+  padding-left: 35px;
 }

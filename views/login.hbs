@@ -2,21 +2,20 @@
     <h1>Sign In</h1>
     <div id="formAndQr">
         <div class="row">
-            <form class="form-horizontal col-sm-6 col-sm-offset-3" method="post">
-                <div class="form-group">
-                    <div class="col-sm-10">
-                        <input type="email" class="form-control" name="email" id="email" placeholder="Email">
-                    </div>
-                </div>
-                <div class="form-group">
+            <h4 class="col-sm-12">with Username/Email</h4>
+            <form id="signInForm" method="post" onsubmit="App.run();return false;">
+                <div class="form-group row">
                     <div class="col-sm-12">
+                        <input type="email" class="form-control" name="email" id="email">
                         <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{url}}">
-                        <button type="button" class="btn btn-primary col-sm-12" onclick="App.run();return false;">Sign in</button>
+                        <button type="button" class="btn btn-primary col-sm-12" id="signInBtn" onclick="App.run();return false;">Sign in</button>
                     </div>
                 </div>
+
             </form>
         </div>
-        <div class="text-center" id="qrcode">
+        <h4>or use BiomioID</h4>
+        <div id="qrcode">
         </div>
     </div>
     <div>
@@ -51,8 +50,8 @@
     $('.message__holder, #timer').hide();
     $('#qrcode').qrcode({
         text: '{{qrUrl}}',
-        width: 200,
-        height: 200
+        width: 150,
+        height: 150
     });
 
 </script>
