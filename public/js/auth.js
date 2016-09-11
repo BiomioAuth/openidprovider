@@ -2,7 +2,7 @@
 var App = (function() {
 
   var flow = 'email'; // email or token
-  var redirectBackTimeout = 3000;
+  var redirectBackTimeout = 1;
 
   var socket = io();
   var registerUrl = '/openid/user/create/';
