@@ -157,13 +157,14 @@ io.on('connection', function(socket) {
     }
 
     var conn = new BiomioNode(externalToken, gateOptions, function() {
-
+      	
       conn.user_exists(function(exists) {
         console.info('user exists ', exists);
         io.emit('check-token', exists);
       });
-
+      console.info('session', externalToken, socket.id);
       connections[socket.id] = conn;
+     
     });
 
   });
@@ -172,7 +173,8 @@ io.on('connection', function(socket) {
     console.log('run-auth: ', msg);
 
     var conn = connections[socket.id];
-
+    console.info('run-auth', socket.id);
+   // console.info('connections', connections);
     try {
       /* callback will be called few times: in_progress, completed */
       conn.run_auth(function (result) {
@@ -192,8 +194,11 @@ io.on('connection', function(socket) {
             });
           });
         }
-
-        io.emit('status', result);
+        if(io.sockets.connected[socket.id]) {
+	  console.info('socket connected', socket.id);
+	  io.sockets.connected[socket.id].emit('status', result);
+	}
+        //io.emit('status', result);
       });
 
     } catch(ex) {
