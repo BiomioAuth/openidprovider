@@ -128,6 +128,7 @@ var App = (function() {
   };
 
   var setTimer = function(duration) {
+    clearInterval(timerInstance);
     $timer.show();
 
     var start = Date.now();
