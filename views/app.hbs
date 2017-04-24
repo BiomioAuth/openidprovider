@@ -1,0 +1,129 @@
+<div id="auth">
+  <h1>Authorizing</h1>
+
+  <div class="hidden">
+    <input type="hidden" class="form-control" name="scope" id="scope" value="{{scope}}">
+    <input type="hidden" class="form-control" name="clientId" id="clientId" value="{{clientId}}">
+    <input type="hidden" class="form-control" name="externalToken" id="externalToken" value="{{externalToken}}">
+    <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{redirect_uri}}">
+  </div>
+
+  <div class="auth">
+
+    <div id="state-wait" class="auth__content auth__content--wait" style="display: none;"></div>
+
+    <div id="state-text_input" class="auth__content auth__content--input" style="display: none;"></div>
+
+    <div id="state-face" class="auth__content--face" style="display: none;"></div>
+
+    <div id="state-timer" class="auth__content auth__content--timer" style="display: none;"></div>
+
+    <div class="footer">
+      <img class="footer__logo" src="footer-logo.png" alt="biomio logo" title="" />
+
+      <p class="footer__text">Multi-Factor, Password-Optional Authentication Anywhere, Everywhere</p>
+    </div>
+  </div>
+
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<!-- face -->
+<script type="text/javascript" src="js/jsfeat/jsfeat-min.js"></script>
+<script type="text/javascript" src="js/jsfeat/frontalface.js"></script>
+<script type="text/javascript" src="js/jsfeat/compatibility.js"></script>
+<script type="text/javascript" src="js/jsfeat/profiler.js"></script>
+<script type="text/javascript" src="js/jsfeat/dat.gui.min.js"></script>
+
+<!-- custom -->
+<script src="/js/auth.js"></script>
+<script src="/js/form.js"></script>
+<script src="/js/face.js"></script>
+
+<script>
+  console.info('app.hbs');
+
+
+
+  $(function () {
+
+    var Wait = function (params) {
+      "use strict";
+
+      var self = this;
+      self.$element = params.$element;
+
+      /** init DOM structure */
+      var html = {};
+      html.title = $("<h2/>").html('Please wait');
+      self.$element.append(html.title);
+
+    }
+
+    var AuthTimer = function(params) {
+      var self = this;
+      self.$element = $('#state-timer');
+      console.info('AuthTimer: ', params);
+
+
+
+    }
+
+    var Application = (function () {
+      var user = {};
+      var socket = io();
+      var state = {};
+
+      var init = function (options) {
+        console.info('Auth.init', options);
+        user = options;
+
+        state.$wait = $('#state-wait');
+        state.$text_input = $('#state-text_input');
+        state.$timer = $('#state-timer');
+        state.$face = $('#state-face');
+
+        socketInit();
+      };
+
+      var switchToState = function (stateName) {
+        console.info('Switch to state: ', stateName);
+        state.$wait.hide();
+        state.$text_input.hide();
+        state.$timer.hide();
+        state.$face.hide();
+        state['$' + stateName].show();
+      };
+
+      var socketInit = function () {
+        console.info('socketInit');
+        socket.emit('hello', user);
+
+        socket.on('auth', function (response) {
+          console.info('auth state: ', response);
+          if (response.state === 'timer') {
+            var authTimer = new AuthTimer(response);
+          } else {
+            switchToState('wait');
+          }
+        });
+
+      };
+
+      return {
+          init: init
+      }
+
+    })();
+
+    Application.init({
+      externalToken: $('#externalToken').val(),
+      clientId: $('#clientId').val(),
+      redirectUrl: $('#redirectUrl').val(),
+      scope: $('#scope').val()
+    });
+  });
+
+</script>

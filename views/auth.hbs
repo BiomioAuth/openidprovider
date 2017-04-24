@@ -1,9 +1,10 @@
 <div id="auth">
-    <h1>Authorizinffg</h1>
+    <h1>Authorizing</h1>
 
     <div class="hidden">
         <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{url}}">
-        <input type="hidden" class="form-control" name="token" id="token" value="{{externalToken}}">
+        <input type="hidden" class="form-control" name="clientId" id="token" value="{{clientId}}">
+        <input type="hidden" class="form-control" name="externalToken" id="token" value="{{externalToken}}">
     </div>
 
     <div class="auth">
@@ -41,11 +42,14 @@
 <script src="/js/face.js"></script>
 
 <script>
+  console.info('auth.hbs');
+
     var Auth = (function () {
         var socket = io();
         var state = {};
 
         var init = function () {
+            console.info('Auth.init');
             state.$wait = $('#state-wait');
             state.$text_input = $('#state-text_input');
             state.$timer = $('#state-timer');
@@ -63,7 +67,8 @@
         };
 
         var socketInit = function () {
-            socket.emit('run-auth');
+            console.info('socketInit');
+            socket.emit('check-token');
 
             socket.on('state-wait', function (response) {
                 console.info('state-wait: ', response);
