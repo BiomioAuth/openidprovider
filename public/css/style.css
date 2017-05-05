@@ -585,3 +585,24 @@ body {
 #consent .btn-custom-cancel {
   background-color: #9fa3b3;
 }
+
+#email {
+  width: 50%;
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+}
+
+#init-user {
+  margin-top: 12px;
+  margin-bottom: 20px;
+}
+
+#qrcode {
+  margin-top: 15px;
+  padding-left: 35px;
+}
+
+#sign-in-form {
+  padding-left: 35px;
+}
