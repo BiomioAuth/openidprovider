@@ -1,29 +1,47 @@
 <div id="auth">
-  <h1>Authorizing</h1>
+    <h1>Authorizing</h1>
 
-  <div class="hidden">
-    <input type="hidden" class="form-control" name="scope" id="scope" value="{{scope}}">
-    <input type="hidden" class="form-control" name="clientId" id="clientId" value="{{clientId}}">
-    <input type="hidden" class="form-control" name="externalToken" id="externalToken" value="{{externalToken}}">
-    <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{redirect_uri}}">
-  </div>
-
-  <div class="auth">
-
-    <div id="state-wait" class="auth__content auth__content--wait" style="display: none;"></div>
-
-    <div id="state-text_input" class="auth__content auth__content--input" style="display: none;"></div>
-
-    <div id="state-face" class="auth__content--face" style="display: none;"></div>
-
-    <div id="state-timer" class="auth__content auth__content--timer" style="display: none;"></div>
-
-    <div class="footer">
-      <img class="footer__logo" src="footer-logo.png" alt="biomio logo" title="" />
-
-      <p class="footer__text">Multi-Factor, Password-Optional Authentication Anywhere, Everywhere</p>
+    <div class="hidden">
+        <input type="hidden" class="form-control" name="scope" id="scope" value="{{scope}}">
+        <input type="hidden" class="form-control" name="clientId" id="clientId" value="{{clientId}}">
+        <input type="hidden" class="form-control" name="externalToken" id="externalToken" value="{{externalToken}}">
+        <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{redirect_uri}}">
+        <input type="hidden" class="form-control" name="sessionId" id="sessionId" value="{{sessionId}}">
     </div>
-  </div>
+
+    <div class="auth">
+
+
+        <div id="timer"></div>
+        <div class="message__holder">
+            <div id="message"></div>
+        </div>
+
+        <div id="init-user">
+            <div class="row">
+                <h4 class="col-sm-12">with Username/Email</h4>
+                <form id="sign-in-form" method="post">
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <input type="email" class="form-control" name="email" id="email">
+                            <button type="button" class="btn btn-primary col-sm-12" id="sign-in-btn">Sign in</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <h4>or use BiomioID</h4>
+            <div id="qrcode">
+            </div>
+        </div>
+
+
+        <div class="footer">
+            <img class="footer__logo" src="footer-logo.png" alt="biomio logo" title=""/>
+
+            <p class="footer__text">Multi-Factor, Password-Optional Authentication Anywhere, Everywhere</p>
+        </div>
+    </div>
 
 
 </div>
@@ -38,92 +56,194 @@
 <script type="text/javascript" src="js/jsfeat/dat.gui.min.js"></script>
 
 <!-- custom -->
-<script src="/js/auth.js"></script>
 <script src="/js/form.js"></script>
 <script src="/js/face.js"></script>
+<script src="/js/jquery.qrcode.js"></script>
+<script src="/js/qrcode.js"></script>
 
 <script>
-  console.info('app.hbs');
+    $(function () {
+        var Application = (function() {
+            var user = {};
+            var socket = io();
+            var redirectBackTimeout = 1;
+            var $messageHolder = $('.message__holder');
+            var $message = $('#message');
+            var $timerHolder = $('#timer');
+            var $email = $('#email');
+            var $qrCode = $('#qrcode');
+            var $initUser = $('#init-user');
+            var $signInBtn = $('#sign-in-btn');
+            var authComplete = false;
+
+            var timerInstance = null;
+
+
+            var showTimer = function() {
+              $initUser.hide();
+              $timerHolder.show();
+              $messageHolder.show();
+            };
+
+            var showInitUserWindow = function() {
+                $timerHolder.hide();
+                $messageHolder.hide();
+                $initUser.show();
+            };
+
+            var showMessageHolderOnly = function() {
+                $timerHolder.hide();
+                $initUser.hide();
+                $messageHolder.show();
+            };
 
 
 
-  $(function () {
+            var setTimer = function (duration) {
+                showTimer();
 
-    var Wait = function (params) {
-      "use strict";
+                var start = Date.now();
+                var diff;
+                var minutes;
+                var seconds;
 
-      var self = this;
-      self.$element = params.$element;
+                function timer() {
+                    diff = duration - (((Date.now() - start) / 1000) | 0);
 
-      /** init DOM structure */
-      var html = {};
-      html.title = $("<h2/>").html('Please wait');
-      self.$element.append(html.title);
+                    minutes = (diff / 60) | 0;
+                    seconds = (diff % 60) | 0;
 
-    }
+                    minutes = minutes < 10 ? "0" + minutes : minutes;
+                    seconds = seconds < 10 ? "0" + seconds : seconds;
 
-    var AuthTimer = function(params) {
-      var self = this;
-      self.$element = $('#state-timer');
-      console.info('AuthTimer: ', params);
+                    $timerHolder.text(minutes + ":" + seconds);
+
+                    if (diff <= 0) {
+                        start = Date.now() + 1000;
+                        stopTimer();
+                        showMessage('Time is out! Need more time? <a href="#" id="try_again" class="btn btn-default btn-sm"> Try again</a>');
+                        $('#try_again').on('click', tryAgain);
+                    }
+                }
+
+                timer();
+                timerInstance = setInterval(timer, 1000);
+            };
+
+            var stopTimer = function () {
+                clearInterval(timerInstance);
+                timerInstance = null;
+                $timerHolder.text('00:00');
+            };
 
 
+            var showMessage = function (message) {
+                var html = '<p class="msg">' + message + '</p>';
+                $message.html(html);
+            };
 
-    }
+            var clearMessage = function () {
+                $message.html('');
+            };
 
-    var Application = (function () {
-      var user = {};
-      var socket = io();
-      var state = {};
+            var tryAgain = function() {
+                socket.emit('run-auth', user);
+                clearMessage();
+                stopTimer();
+            };
 
-      var init = function (options) {
-        console.info('Auth.init', options);
-        user = options;
+            var redirect = function() {
+                setTimeout(function() {
+                    document.location.replace(user.redirectUrl);
+                }, redirectBackTimeout);
+            };
 
-        state.$wait = $('#state-wait');
-        state.$text_input = $('#state-text_input');
-        state.$timer = $('#state-timer');
-        state.$face = $('#state-face');
+            var signIn = function() {
+                user.externalToken = $email.val();
+                socket.emit('run-auth', user);
+            };
 
-        socketInit();
-      };
+            var init = function(options) {
+                user = options;
 
-      var switchToState = function (stateName) {
-        console.info('Switch to state: ', stateName);
-        state.$wait.hide();
-        state.$text_input.hide();
-        state.$timer.hide();
-        state.$face.hide();
-        state['$' + stateName].show();
-      };
+                if (user.externalToken) {
+                    socket.emit('run-auth', user);
+                    showTimer();
+                } else {
+                    showInitUserWindow();
+                    socket.emit('session', user.sessionId);
+                }
 
-      var socketInit = function () {
-        console.info('socketInit');
-        socket.emit('hello', user);
+                $qrCode.qrcode({
+                    text: '{{qrUrl}}',
+                    width: 150,
+                    height: 150
+                });
 
-        socket.on('auth', function (response) {
-          console.info('auth state: ', response);
-          if (response.state === 'timer') {
-            var authTimer = new AuthTimer(response);
-          } else {
-            switchToState('wait');
-          }
+                $signInBtn.on('click', signIn);
+
+                socketInit();
+            };
+
+            var socketInit = function() {
+                socket.on('state-timer', function (data) {
+                    data.msg = "Open Biomio application on your phone to proceed";
+                    if (data.timeout) {
+                        showTimer();
+                        if (!timerInstance) {
+                            setTimer(data.timeout);
+                        }
+                    } else {
+                        stopTimer();
+                    }
+                    showMessage(data.msg);
+                });
+
+                socket.on('not_exists', function() {
+                    showMessageHolderOnly();
+                    showMessage('You are not registered');
+                });
+
+
+                socket.on('complete', function(data) {
+                    stopTimer();
+                    showMessage(data.msg);
+                    authComplete = true;
+                    redirect();
+                });
+
+                socket.on('run-auth', function(data) {
+                    user.externalToken = data.user;
+                    socket.emit('run-auth', user);
+                });
+
+                socket.on('fail', function(data) {
+                    stopTimer();
+                    data.error += ' <a href="#" id="try_again" class="btn btn-default btn-sm"> Try again</a>';
+                    showMessage(data.error);
+                    $('#try_again').on('click', tryAgain);
+                });
+            };
+
+            $(window).on('beforeunload', function(){
+                if (!authComplete) {
+                    socket.emit('cancel', user);
+                }
+            });
+
+            return {
+                init: init
+            }
+
+        })();
+
+        Application.init({
+            externalToken: $('#externalToken').val(),
+            clientId: $('#clientId').val(),
+            redirectUrl: $('#redirectUrl').val(),
+            scope: $('#scope').val(),
+            sessionId: $('#sessionId').val()
         });
-
-      };
-
-      return {
-          init: init
-      }
-
-    })();
-
-    Application.init({
-      externalToken: $('#externalToken').val(),
-      clientId: $('#clientId').val(),
-      redirectUrl: $('#redirectUrl').val(),
-      scope: $('#scope').val()
     });
-  });
 
 </script>

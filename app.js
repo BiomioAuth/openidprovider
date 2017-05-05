@@ -27,7 +27,8 @@ var app = express();
 var server = http.Server(app);
 var io = require('socket.io')(server);
 
-var connections = {};
+var gateConnections = {};
+var socketConnections = {};
 var config = require('./config');
 var client = require('./controllers/client');
 var user = require('./controllers/user');
@@ -137,112 +138,116 @@ var gateOptions = {
     devId: 'node_js_lib'
 };
 
-io.on('connection', function(socket) {
-    console.info('a user connected');
 
-    socket.on('hello', function(user) {
-        console.log('hello: ', user);
+function runAuth(user, socket) {
+    var conn = new BiomioNode(gateOptions);
 
-        /** if instance is exist - finish it! */
-        if (connections[socket.id]) {
-            console.info('FINISH');
-            // connections[socket.id].finish();
-            delete connections[socket.id];
-        }
+    conn.on('ready', function() {
+        console.info('Connection to Gate is ready!', socket.id);
 
-        var conn = new BiomioNode(gateOptions);
+        gateConnections[socket.id] = conn;
 
-        conn.on('ready', function() {
-            console.info('Connection to Gate is ready!', socket.id);
+        var runAuthParams = {
+            userId: user.clientId,
+            sessionId: socket.id,
+            clientId: user.externalToken,
+            resources: config.resources
+        };
 
-            connections[socket.id] = conn;
 
-            let runAuthParams = {
-                userId: user.clientId,
-                sessionId: socket.id,
-                clientId: user.externalToken,
-                resources: config.resources
-            };
 
-            conn.rpc('auth', runAuthParams, function(message) {
-                console.info('RUN AUTH STATUS: ' + JSON.stringify(message));
+        conn.rpc('auth', runAuthParams, function(message) {
+            console.info('RUN AUTH STATUS: ' + JSON.stringify(message));
 
-                switch (message.msg.rpcStatus) {
-                    case 'completed':
-                        var data = socket.handshake || socket.request;
-                        var cookies = cookie.parse(data.headers.cookie);
-                        var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
+            switch (message.msg.rpcStatus) {
+                case 'completed':
+                    var data = socket.handshake || socket.request;
+                    var cookies = cookie.parse(data.headers.cookie);
+                    var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
 
-                        sessionStore.get(sid, function(error, sess) {
-                            console.info('session get: ', error, sess);
-                            sess.user = conn._on_behalf_of;
+                    sessionStore.get(sid, function(error, sess) {
+                        console.info('session get: ', error, sess);
+                        sess.user = conn._on_behalf_of;
 
-                            /** LDAP agent can return some information of user - save it in the user's session */
-                            if (typeof message.msg.user_data !== 'undefined') {
-                                sess.userData = message.msg.user_data;
-                            }
-
-                            sessionStore.set(sid, sess, function(error, result) {
-                                error && console.error(error);
-                            });
-                        });
-
-                        break;
-                    case 'inprogress':
-
-                        if (!message.msg.data.timeout) {
-                            io.emit('state-timer', message.msg);
+                        /** LDAP agent can return some information of user - save it in the user's session */
+                        if (typeof message.msg.user_data !== 'undefined') {
+                            sess.userData = message.msg.user_data;
                         }
 
-                        break;
-                    case 'fail':
-                        console.error(message.msg.data.error);
-                        break;
-                    default:
-                        throw Error('Unhandled RPC status: ', message.msg.rpcStatus);
-                }
+                        sessionStore.set(sid, sess, function(error, result) {
+                            error && console.error(error);
+                        });
+                    });
 
-                // if (result.msg.status === 'completed') {
-                //     var data = socket.handshake || socket.request;
-                //     var cookies = cookie.parse(data.headers.cookie);
-                //     var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
-
-                //     sessionStore.get(sid, function(error, sess) {
-                //         sess.user = conn._on_behalf_of;
-
-                //         sessionStore.set(sid, sess, function(error, result) {
-                //             //console.info('session set: ', error, result);
-                //             error && console.error(error);
-                //         });
-                //     });
-                // }
-
-                io.emit('auth', message);
-            });
-
+                    io.emit('complete', message.msg.data);
+                    break;
+                case 'inprogress':
+                    io.emit('state-timer', message.msg.data);
+                    break;
+                case 'fail':
+                    var err = message.msg.data;
+                    if (err.code === 'NOT_REGISTERED') {
+                        io.emit('not_exists');
+                    } else {
+                        io.emit('fail', message.msg.data);
+                    }
+                    break;
+                default:
+                    throw Error('Unhandled RPC status: ', message.msg.rpcStatus);
+            }
         });
 
     });
+}
 
-    // socket.on('check-token', function(externalToken) {
-    //     console.log('check-token: ', externalToken);
+io.on('connection', function(socket) {
+    console.info('a user connected');
 
-    //     /** if instance is exist - finish it! */
-    //     if (connections[socket.id]) {
-    //         console.info('FINISH');
-    //         // connections[socket.id].finish();
-    //         delete connections[socket.id];
-    //     }
+    socket.on('run-auth', function(user) {
+        runAuth(user, socket);
+    });
 
-    //     var conn = new BiomioNode(gateOptions);
+    socket.on('cancel', function(user) {
+        var conn = gateConnections[socket.id];
+        var cancelAuthParams = {
+            userId: user.clientId,
+            sessionId: socket.id,
+            clientId: user.externalToken,
+            resources: config.resources
+        };
 
-    //     conn.on('ready', function() {
-    //         console.info('Connection to Gate is ready!', socket.id);
-    //         io.emit('state-timer', true);
-    //         connections[socket.id] = conn;
-    //     });
+        if (conn) {
+            conn.rpc('cancel', cancelAuthParams, function() {
+                console.log('cancel sent');
+            });
+        }
+    });
 
-    // });
+    socket.on('session', function (sessionId) {
+       socketConnections[sessionId] = socket;
+    });
+
+
+    socket.on('error', function(response) {
+        console.warn('SOCKET ON ERROR: ', response);
+    });
+
+    socket.on('disconnect', function() {
+        console.log('user disconnected');
+
+        if (gateConnections[socket.id]) {
+            var conn = gateConnections[socket.id];
+            conn.finish(socket.id);
+            delete gateConnections[socket.id];
+        } else {
+            console.warn('socket id undefined');
+        }
+        if (socketConnections[socket.id]) {
+            delete socketConnections[socket.id];
+        } else {
+            console.warn('socket id undefined');
+        }
+    });
 
     /** Get response from user with information of webcamera */
     // socket.on('resource:face', function(data) {
@@ -325,84 +330,6 @@ io.on('connection', function(socket) {
 
     // });
 
-    socket.on('run-auth', function(msg) {
-        console.log('run-auth: ', msg);
-
-        var conn = connections[socket.id];
-
-        try {
-
-            let runAuthParams = {
-                userId: '',
-                sessionId: socket.id,
-                clientId: '',
-                resources: config.resources
-            };
-
-            conn.rpc('auth', runAuthParams, function(result) {
-                console.log('RUN AUTH STATUS: ' + JSON.stringify(result));
-
-                if (result.status === 'completed') {
-                    var data = socket.handshake || socket.request;
-                    var cookies = cookie.parse(data.headers.cookie);
-                    var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
-
-                    sessionStore.get(sid, function(error, sess) {
-                        sess.user = conn._on_behalf_of;
-
-                        sessionStore.set(sid, sess, function(error, result) {
-                            //console.info('session set: ', error, result);
-                            error && console.error(error);
-                        });
-                    });
-                }
-
-                io.emit('status', result);
-            });
-
-            /* callback will be called few times: in_progress, completed */
-            // conn.run_auth(function(result) {
-            //     console.log('RUN AUTH STATUS: ' + JSON.stringify(result));
-
-            //     if (result.status === 'completed') {
-            //         var data = socket.handshake || socket.request;
-            //         var cookies = cookie.parse(data.headers.cookie);
-            //         var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
-
-            //         sessionStore.get(sid, function(error, sess) {
-            //             sess.user = conn._on_behalf_of;
-
-            //             sessionStore.set(sid, sess, function(error, result) {
-            //                 //console.info('session set: ', error, result);
-            //                 error && console.error(error);
-            //             });
-            //         });
-            //     }
-
-            //     io.emit('status', result);
-            // });
-
-        } catch (ex) {
-            console.warn('EXCEPTION: ', ex);
-        }
-
-    });
-
-    socket.on('error', function(response) {
-        console.warn('SOCKET ON ERROR: ', response);
-    });
-
-    socket.on('disconnect', function() {
-        console.log('user disconnected');
-
-        if (connections[socket.id]) {
-            var conn = connections[socket.id];
-            // conn.finish();
-            delete connections[socket.id];
-        } else {
-            console.warn('socket id undefined');
-        }
-    });
 
 });
 
@@ -442,3 +369,24 @@ app.get('/client/register', oidc.use('client'), client.registerForm());
 
 //app.post('/client/register', oidc.use('client'), client.registerAction());
 app.get('/client/register', client.registerAction());
+
+app.post('/session/:sessionID', function(req, res) {
+    var conn = new BiomioNode(gateOptions);
+    var sessionId = req.params.sessionID;
+
+    conn.on('ready', function() {
+        var getUserParams = {
+            userId: '',
+            sessionId: sessionId,
+            clientId: req.body['app_id'],
+            resources: config.resources
+        };
+
+        conn.rpc('get_user', getUserParams, function(result) {
+            if (result && result.msg) {
+                socketConnections[sessionId].emit('run-auth', result.msg.data);
+            }
+        });
+    });
+    res.send();
+});

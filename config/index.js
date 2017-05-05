@@ -18,5 +18,6 @@ module.exports = {
       rProperties: "",
       rType: "fp-scanner"
     }
-  ]
-}
+  ],
+  host: process.env.HOST
+};

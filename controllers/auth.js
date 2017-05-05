@@ -5,9 +5,8 @@ const querystring = require('querystring');
 var login = function(req, res, next) {
     return function(req, res, next) {
 
-        var redirectURI = req.path;
-        var externalToken = req.query['external_token'];
         var returnURL = req.query['return_url'];
+        var sessionId = req.sessionID;
 
         // if (returnURL) {
         //     var params = returnURL.split('&');
@@ -29,7 +28,9 @@ var login = function(req, res, next) {
             clientId: queryParams.client_id,
             externalToken: queryParams.external_token,
             scope: queryParams.scope,
-            redirect_uri: queryParams.redirect_uri
+            redirect_uri: queryParams.redirect_uri,
+            sessionId: sessionId,
+            qrUrl: process.env.HOST + '/session/' + sessionId
         });
 
         // if (externalToken) {
