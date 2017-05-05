@@ -160,7 +160,7 @@ function runAuth(user, socket) {
             console.info('RUN AUTH STATUS: ' + JSON.stringify(message));
 
             switch (message.msg.rpcStatus) {
-                case 'completed':
+                case 'complete':
                     var data = socket.handshake || socket.request;
                     var cookies = cookie.parse(data.headers.cookie);
                     var sid = cookieParser.signedCookie(cookies[config.session.cookie], config.session.secret);
