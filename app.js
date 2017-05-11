@@ -27,7 +27,6 @@ var app = express();
 var server = http.Server(app);
 var io = require('socket.io')(server);
 
-var gateConnections = {};
 var socketConnections = {};
 var config = require('./config');
 var client = require('./controllers/client');
@@ -138,6 +137,13 @@ var gateOptions = {
     devId: 'node_js_lib'
 };
 
+var gateConnection = new BiomioNode(gateOptions);
+
+gateConnection.on('ready', function () {
+    console.info('Connection to gate is ready');
+});
+
+
 function runAuth(user, socket) {
     var runAuthParams = {
         userId: user.clientId,
@@ -146,9 +152,7 @@ function runAuth(user, socket) {
         resources: config.resources
     };
 
-    var conn = gateConnections[user.sessionId];
-
-    conn.rpc('auth', runAuthParams, function (message) {
+    gateConnection.rpc('auth', runAuthParams, function (message) {
         console.info('RUN AUTH STATUS: ' + JSON.stringify(message));
 
         switch (message.msg.rpcStatus) {
@@ -159,7 +163,7 @@ function runAuth(user, socket) {
 
                 sessionStore.get(sid, function (error, sess) {
                     console.info('session get: ', error, sess);
-                    sess.user = conn._on_behalf_of;
+                    sess.user = gateConnection._on_behalf_of;
 
                     /** LDAP agent can return some information of user - save it in the user's session */
                     if (typeof message.msg.user_data !== 'undefined') {
@@ -195,12 +199,11 @@ io.on('connection', function (socket) {
     var sessionId;
     console.info('a user connected');
 
-    socket.on('run-auth', function (user) {
+    socket.on('run_auth', function (user) {
         runAuth(user, socket);
     });
 
     socket.on('cancel', function (user) {
-        var conn = gateConnections[sessionId];
         var cancelAuthParams = {
             userId: user.clientId,
             sessionId: user.sessionId,
@@ -208,23 +211,15 @@ io.on('connection', function (socket) {
             resources: config.resources
         };
 
-        if (conn) {
-            conn.rpc('cancel', cancelAuthParams, function () {
-                console.info('cancel sent');
-            });
-        }
+        gateConnection.rpc('cancel', cancelAuthParams, function () {
+            console.info('cancel sent');
+        });
     });
 
     socket.on('hello', function (sessId) {
         sessionId = sessId;
         socketConnections[sessionId] = socket;
-        var conn = new BiomioNode(gateOptions);
-
-        conn.on('ready', function () {
-            console.info('Connection to Gate is ready!', sessionId);
-            gateConnections[sessionId] = conn;
-            socket.emit('server_hello');
-        });
+        socket.emit('server_hello');
     });
 
 
@@ -234,14 +229,6 @@ io.on('connection', function (socket) {
 
     socket.on('disconnect', function () {
         console.log('user disconnected');
-
-        if (gateConnections[sessionId]) {
-            var conn = gateConnections[sessionId];
-            conn.finish(sessionId);
-            delete gateConnections[sessionId];
-        } else {
-            console.warn('gate connection not found');
-        }
 
         if (socketConnections[sessionId]) {
             delete socketConnections[sessionId];
@@ -372,22 +359,19 @@ app.get('/client/register', oidc.use('client'), client.registerForm());
 app.get('/client/register', client.registerAction());
 
 app.post('/session/:sessionID', function (req, res) {
-    var conn = new BiomioNode(gateOptions);
     var sessionId = req.params.sessionID;
 
-    conn.on('ready', function () {
-        var getUserParams = {
-            userId: '',
-            sessionId: sessionId,
-            clientId: req.body['app_id'],
-            resources: config.resources
-        };
+    var getUserParams = {
+        userId: '',
+        sessionId: sessionId,
+        clientId: req.body['app_id'],
+        resources: config.resources
+    };
 
-        conn.rpc('get_user', getUserParams, function (result) {
-            if (result && result.msg) {
-                socketConnections[sessionId].emit('run-auth', result.msg.data);
-            }
-        });
+    gateConnection.rpc('get_user', getUserParams, function (result) {
+        if (result && result.msg) {
+            socketConnections[sessionId].emit('run_auth', result.msg.data);
+        }
     });
     res.send();
 });

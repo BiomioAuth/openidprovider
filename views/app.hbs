@@ -147,7 +147,7 @@
             };
 
             var tryAgain = function() {
-                socket.emit('run-auth', user);
+                socket.emit('run_auth', user);
                 clearMessage();
                 stopTimer();
             };
@@ -160,7 +160,7 @@
 
             var signIn = function() {
                 user.externalToken = $email.val();
-                socket.emit('run-auth', user);
+                socket.emit('run_auth', user);
             };
 
             var init = function(options) {
@@ -198,7 +198,7 @@
 
                 socket.on('server_hello', function() {
                     if (user.externalToken) {
-                        socket.emit('run-auth', user);
+                        socket.emit('run_auth', user);
                         showTimer();
                     } else {
                         showInitUserWindow();
@@ -220,10 +220,10 @@
                     redirect();
                 });
 
-                socket.on('run-auth', function(data) {
-                    console.info('socket run-auth', data);
+                socket.on('run_auth', function(data) {
+                    console.info('socket run_auth', data);
                     user.externalToken = data.user;
-                    socket.emit('run-auth', user);
+                    socket.emit('run_auth', user);
                 });
 
                 socket.on('fail', function(data) {
