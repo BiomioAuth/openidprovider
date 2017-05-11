@@ -166,13 +166,9 @@
             var init = function(options) {
                 user = options;
 
-                if (user.externalToken) {
-                    socket.emit('run-auth', user);
-                    showTimer();
-                } else {
-                    showInitUserWindow();
-                    socket.emit('session', user.sessionId);
-                }
+                socket.emit('hello', user.sessionId);
+
+
 
                 $qrCode.qrcode({
                     text: '{{qrUrl}}',
@@ -186,8 +182,8 @@
             };
 
             var socketInit = function() {
-                socket.on('state-timer', function (data) {
-                    console.info('socket state-timer', data);
+                socket.on('inprogress', function (data) {
+                    console.info('socket inprogress', data);
                     data.msg = "Open Biomio application on your phone to proceed";
                     if (data.timeout) {
                         showTimer();
@@ -198,6 +194,15 @@
                         stopTimer();
                     }
                     showMessage(data.msg);
+                });
+
+                socket.on('server_hello', function() {
+                    if (user.externalToken) {
+                        socket.emit('run-auth', user);
+                        showTimer();
+                    } else {
+                        showInitUserWindow();
+                    }
                 });
 
                 socket.on('not_exists', function() {
