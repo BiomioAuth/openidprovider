@@ -5,7 +5,7 @@
         <input type="hidden" class="form-control" name="scope" id="scope" value="{{scope}}">
         <input type="hidden" class="form-control" name="clientId" id="clientId" value="{{clientId}}">
         <input type="hidden" class="form-control" name="externalToken" id="externalToken" value="{{externalToken}}">
-        <input type="hidden" class="form-control" name="redirectUrl" id="redirectUrl" value="{{redirect_uri}}">
+        <input type="hidden" class="form-control" name="returnUrl" id="returnUrl" value="{{returnUrl}}">
         <input type="hidden" class="form-control" name="sessionId" id="sessionId" value="{{sessionId}}">
     </div>
 
@@ -154,7 +154,7 @@
 
             var redirect = function() {
                 setTimeout(function() {
-                    document.location.replace(user.redirectUrl);
+                    document.location.replace(user.returnUrl);
                 }, redirectBackTimeout);
             };
 
@@ -164,6 +164,7 @@
             };
 
             var init = function(options) {
+                console.log('Init: ', options);
                 user = options;
 
                 socket.emit('hello', user.sessionId);
@@ -250,7 +251,7 @@
         Application.init({
             externalToken: $('#externalToken').val(),
             clientId: $('#clientId').val(),
-            redirectUrl: $('#redirectUrl').val(),
+            returnUrl: $('#returnUrl').val(),
             scope: $('#scope').val(),
             sessionId: $('#sessionId').val()
         });

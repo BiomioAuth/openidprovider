@@ -48,21 +48,7 @@ var options = {
         }
     },
     policies: {
-        loggedIn: function (req, res, next) {
-            if (req.session.user) {
-                next();
-            } else {
-                var params = {};
-
-                if (req.parsedParams && req.parsedParams['external_token'] !== undefined) {
-                    params.external_token = req.parsedParams['external_token'];
-                }
-
-                params.return_url = req.parsedParams ? req.path + '?' + querystring.stringify(req.parsedParams) : req.originalUrl;
-                //console.log('XX', params.return_url);
-                res.redirect(this.settings.login_url + '?' + querystring.stringify(params));
-            }
-        }
+        loggedIn: auth.loggedInPolicy
     },
     app: app
 };
@@ -163,7 +149,7 @@ function runAuth(user, socket) {
 
                 sessionStore.get(sid, function (error, sess) {
                     console.info('session get: ', error, sess);
-                    sess.user = gateConnection._on_behalf_of;
+                    sess.user = message.msg.onBehalfOf;
 
                     /** LDAP agent can return some information of user - save it in the user's session */
                     if (typeof message.msg.user_data !== 'undefined') {
