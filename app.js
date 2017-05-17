@@ -132,9 +132,9 @@ gateConnection.on('ready', function () {
 
 function runAuth(user, socket) {
     var runAuthParams = {
-        userId: user.clientId,
+        userId: user.externalToken,
         sessionId: user.sessionId,
-        clientId: user.externalToken,
+        clientId: user.clientId,
         resources: config.resources
     };
 
@@ -191,9 +191,9 @@ io.on('connection', function (socket) {
 
     socket.on('cancel', function (user) {
         var cancelAuthParams = {
-            userId: user.clientId,
+            userId: user.externalToken,
             sessionId: user.sessionId,
-            clientId: user.externalToken,
+            clientId: user.clientId,
             resources: config.resources
         };
 
@@ -348,14 +348,13 @@ app.post('/session/:sessionID', function (req, res) {
     var sessionId = req.params.sessionID;
 
     var getUserParams = {
-        userId: '',
         sessionId: sessionId,
-        clientId: req.body['app_id'],
+        userId: req.body['app_id'],
         resources: config.resources
     };
 
     gateConnection.rpc('get_user', getUserParams, function (result) {
-        if (result && result.msg) {
+        if (result && result.msg && socketConnections[sessionId]) {
             socketConnections[sessionId].emit('run_auth', result.msg.data);
         }
     });
