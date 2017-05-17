@@ -138,6 +138,8 @@ function runAuth(user, socket) {
         resources: config.resources
     };
 
+    socket.user = user;
+
     gateConnection.rpc('auth', runAuthParams, function (message) {
         console.info('RUN AUTH STATUS: ' + JSON.stringify(message));
 
@@ -190,16 +192,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('cancel', function (user) {
-        var cancelAuthParams = {
-            userId: user.externalToken,
-            sessionId: user.sessionId,
-            clientId: user.clientId,
-            resources: config.resources
-        };
 
-        gateConnection.rpc('cancel', cancelAuthParams, function () {
-            console.info('cancel sent');
-        });
     });
 
     socket.on('hello', function (sessId) {
@@ -217,9 +210,22 @@ io.on('connection', function (socket) {
         console.log('user disconnected');
 
         if (socketConnections[sessionId]) {
+            var user = socketConnections[sessionId].user;
+
+            if (user) {
+                var cancelAuthParams = {
+                    userId: user.externalToken,
+                    sessionId: user.sessionId,
+                    clientId: user.clientId,
+                    resources: config.resources
+                };
+
+                gateConnection.rpc('cancel', cancelAuthParams, function () {
+                    console.info('cancel sent');
+                });
+            }
+
             delete socketConnections[sessionId];
-        } else {
-            console.warn('socket connection not found');
         }
     });
 

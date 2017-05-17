@@ -74,7 +74,7 @@
             var $qrCode = $('#qrcode');
             var $initUser = $('#init-user');
             var $signInBtn = $('#sign-in-btn');
-            var authComplete = false;
+            var $signInForm = $('#sign-in-form');
 
             var timerInstance = null;
 
@@ -158,9 +158,16 @@
                 }, redirectBackTimeout);
             };
 
-            var signIn = function() {
+            var signIn = function(e) {
                 user.externalToken = $email.val();
                 socket.emit('run_auth', user);
+                e.preventDefault();
+            };
+
+            var tryAnother = function() {
+                user.externalToken = '';
+                $email.val('');
+                showInitUserWindow();
             };
 
             var init = function(options) {
@@ -178,6 +185,7 @@
                 });
 
                 $signInBtn.on('click', signIn);
+                $signInForm.on('submit', signIn);
 
                 socketInit();
             };
@@ -209,15 +217,16 @@
                 socket.on('not_exists', function() {
                     console.info('socket not_exists');
                     showMessageHolderOnly();
-                    showMessage('You are not registered');
+                    showMessage('You are not registered <a href="#" id="try_another" class="btn btn-default btn-sm"> Try another email</a>');
+                    $('#try_another').on('click', tryAnother);
                 });
 
 
                 socket.on('complete', function(data) {
+                    data.msg = "Authentication was successful";
                     console.info('socket complete', data);
                     stopTimer();
                     showMessage(data.msg);
-                    authComplete = true;
                     redirect();
                 });
 
@@ -235,12 +244,6 @@
                     $('#try_again').on('click', tryAgain);
                 });
             };
-
-            $(window).on('beforeunload', function(){
-                if (!authComplete) {
-                    socket.emit('cancel', user);
-                }
-            });
 
             return {
                 init: init
