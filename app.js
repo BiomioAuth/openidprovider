@@ -138,6 +138,7 @@ function runAuth(user, socket) {
         resources: config.resources
     };
 
+    user.authenticated = false;
     socket.user = user;
 
     gateConnection.rpc('auth', runAuthParams, function (message) {
@@ -163,6 +164,7 @@ function runAuth(user, socket) {
                     });
                 });
 
+                socket.user.authenticated = true;
                 socket.emit('complete', message.msg.data);
                 break;
             case 'inprogress':
@@ -211,8 +213,7 @@ io.on('connection', function (socket) {
 
         if (socketConnections[sessionId]) {
             var user = socketConnections[sessionId].user;
-
-            if (user) {
+            if (user && user.authenticated === false) {
                 var cancelAuthParams = {
                     userId: user.externalToken,
                     sessionId: user.sessionId,
