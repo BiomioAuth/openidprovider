@@ -4,17 +4,18 @@ const querystring = require('querystring');
 
 var login = function(req, res, next) {
     return function(req, res, next) {
-
         var returnURL = req.query['return_url'];
         var sessionId = req.sessionID;
 
-        let queryParams = querystring.parse(`return_url=${returnURL}`, null, null);
+        var queryParams = querystring.parse(`return_url=${returnURL}`, null, null);
         console.info('***', JSON.stringify(queryParams, null, 2));
 
         res.render('app', {
             clientId: queryParams.client_id,
             externalToken: queryParams.external_token,
             scope: queryParams.scope,
+            providerId: queryParams.provider_id,
+            webResourceId: queryParams.webresource_id,
             returnUrl: returnURL,
             sessionId: sessionId,
             qrUrl: process.env.HOST + '/session/' + sessionId

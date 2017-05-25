@@ -7,6 +7,8 @@
         <input type="hidden" class="form-control" name="externalToken" id="externalToken" value="{{externalToken}}">
         <input type="hidden" class="form-control" name="returnUrl" id="returnUrl" value="{{returnUrl}}">
         <input type="hidden" class="form-control" name="sessionId" id="sessionId" value="{{sessionId}}">
+        <input type="hidden" class="form-control" name="providerId" id="providerId" value="{{providerId}}">
+        <input type="hidden" class="form-control" name="webResourceId" id="webResourceId" value="{{webResourceId}}">
     </div>
 
     <div class="auth">
@@ -256,7 +258,9 @@
             clientId: $('#clientId').val(),
             returnUrl: $('#returnUrl').val(),
             scope: $('#scope').val(),
-            sessionId: $('#sessionId').val()
+            sessionId: $('#sessionId').val(),
+            webResourceId: $('#webResourceId').val(),
+            providerId: $('#providerId').val(),
         });
     });
 

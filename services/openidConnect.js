@@ -26,23 +26,6 @@ redis = require("redis-node");
 var config = require('../config');
 var redisClient = redis.createClient(config.redis);
 
-/**
- * We have only one client for now, in feature we are going to get client from API server
- */
-var client = {
-    "name": "client name",
-    "redirect_uris": [
-        "http://oidc.surge.sh/callback.html"
-    ],
-    "key": "56ce9a6a93c17d2c867c5c293482b8f9",
-    "secret": "85a879a19387afe791039a88b354a374",
-    "user": "biomio.vk.test@gmail.com",
-    "credentialsFlow": false,
-    "createdAt": "2015-09-21T09:51:44.164Z",
-    "updatedAt": "2015-09-21T09:51:44.164Z",
-    "id": 1
-};
-
 var defaults = {
     login_url: '/login',
     consent_url: '/consent',
@@ -455,6 +438,8 @@ OpenIDConnect.prototype.auth = function() {
         external_token: false, // addition token from external site, it identifies user
         redirect_uri: true,
         state: false,
+        provider_id: false,
+        webresource_id: false,
         nonce: function(params) {
             return params.response_type.indexOf('id_token') !== -1;
         },
@@ -475,7 +460,6 @@ OpenIDConnect.prototype.auth = function() {
         function(req, res, next) {
             Q(req.parsedParams).then(function(params) {
                     //Step 2: Check if response_type is supported and client_id is valid.
-                    console.info('2', params, client);
                     var deferred = Q.defer();
                     switch (params.response_type) {
                         case 'none':
@@ -493,13 +477,15 @@ OpenIDConnect.prototype.auth = function() {
                             });
                     }
 
-                    if (client.key === params.client_id) {
-                        req.session.client_id = client.id;
-                        req.session.client_secret = client.secret;
-                        deferred.resolve(params);
-                    } else {
-                        deferred.reject({ type: 'error', uri: params.redirect_uri, error: 'invalid_client', msg: 'Client ' + params.client_id + ' doesn\'t exist.' });
-                    }
+                    req.model.client.findOne({key: params.client_id}, function(err, model) {
+                        if(err || !model || model === '') {
+                            deferred.reject({type: 'error', uri: params.redirect_uri, error: 'invalid_client', msg: 'Client '+params.client_id+' doesn\'t exist.'});
+                        } else {
+                            req.session.client_id = model.id;
+                            req.session.client_secret = model.secret;
+                            deferred.resolve(params);
+                        }
+                    });
 
                     return deferred.promise;
                 }).then(function(params) {
@@ -799,11 +785,13 @@ OpenIDConnect.prototype.token = function() {
                         //Step 2: check if client and secret are valid
                         var deferred = Q.defer();
 
-                        if (client.key === client_key && client.secret === client_secret) {
-                            deferred.resolve(client);
-                        } else {
-                            deferred.reject({ type: 'error', error: 'invalid_client', msg: 'Client doesn\'t exist or invalid secret.' });
-                        }
+                        req.model.client.findOne({key: client_key, secret: client_secret}, function(err, client){
+                            if(err || !client) {
+                                deferred.reject({type: 'error', error: 'invalid_client', msg: 'Client doesn\'t exist or invalid secret.'});
+                            } else {
+                                deferred.resolve(client);
+                            }
+                        });
 
                         return deferred.promise;
                     })
@@ -1206,6 +1194,7 @@ OpenIDConnect.prototype.removetokens = function() {
         }
     ];
 };
+
 
 exports.oidc = function(options) {
     return new OpenIDConnect(options);

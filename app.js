@@ -134,6 +134,7 @@ function runAuth(user, socket) {
     var runAuthParams = {
         userId: user.externalToken,
         sessionId: user.sessionId,
+        providerId: user.providerId,
         clientId: user.clientId,
         resources: config.resources
     };
@@ -141,7 +142,7 @@ function runAuth(user, socket) {
     user.authenticated = false;
     socket.user = user;
 
-    gateConnection.rpc('auth', runAuthParams, function (message) {
+    gateConnection.rpc('process_auth', runAuthParams, function (message) {
         console.info('RUN AUTH STATUS: ' + JSON.stringify(message));
 
         switch (message.msg.rpcStatus) {
@@ -152,7 +153,7 @@ function runAuth(user, socket) {
 
                 sessionStore.get(sid, function (error, sess) {
                     console.info('session get: ', error, sess);
-                    sess.user = message.msg.onBehalfOf;
+                    sess.user = user.externalToken;
 
                     /** LDAP agent can return some information of user - save it in the user's session */
                     if (typeof message.msg.user_data !== 'undefined') {
@@ -166,6 +167,7 @@ function runAuth(user, socket) {
 
                 socket.user.authenticated = true;
                 socket.emit('complete', message.msg.data);
+
                 break;
             case 'inprogress':
                 socket.emit('inprogress', message.msg.data);
@@ -175,7 +177,7 @@ function runAuth(user, socket) {
                 if (err.code === 'NOT_REGISTERED') {
                     socket.emit('not_exists');
                 } else {
-                    socket.emit('fail', message.msg.data);
+                    socket.emit('fail', err);
                 }
                 break;
             default:
@@ -185,12 +187,55 @@ function runAuth(user, socket) {
 
 }
 
+var clientModel = null;
+var saveClientModel = function() {
+    return function(req, res, next) {
+        clientModel = req.model.client;
+        next();
+    }
+};
+
+
+var saveClient = function(user, socket, cb) {
+    clientModel.findOne({key: user.clientId}, function(err, searchResult) {
+        if (!searchResult) {
+            gateConnection.rpc('get_web_resource_secret', {
+                sessionId: user.sessionId,
+                webResourceId: user.webResourceId,
+                providerId: user.providerId,
+                userId: user.externalToken,
+                resources: config.resources
+            }, function(message) {
+                if (message.msg.rpcStatus !== 'complete') {
+                    return cb(null);
+                }
+                var data = message.msg.data;
+                clientModel.create({
+                    name: data.title,
+                    key: user.clientId,
+                    secret: data.secret,
+                    credentialsFlow: false,
+                    redirect_uris: [
+                        "http://oidc.surge.sh/callback.html"
+                    ]
+                }, function(error, createResult) {
+                    cb(createResult);
+                });
+            });
+        }
+        return cb(searchResult);
+    });
+};
+
+
 io.on('connection', function (socket) {
     var sessionId;
     console.info('a user connected');
 
     socket.on('run_auth', function (user) {
-        runAuth(user, socket);
+        saveClient(user, socket, function(result) {
+            runAuth(user, socket);
+        });
     });
 
     socket.on('cancel', function (user) {
@@ -217,17 +262,18 @@ io.on('connection', function (socket) {
                 var cancelAuthParams = {
                     userId: user.externalToken,
                     sessionId: user.sessionId,
+                    providerId: user.providerId,
                     clientId: user.clientId,
                     resources: config.resources
                 };
 
-                gateConnection.rpc('cancel', cancelAuthParams, function () {
-                    console.info('cancel sent');
-                });
+                gateConnection.rpc('cancel_auth', cancelAuthParams, function(){});
             }
 
             delete socketConnections[sessionId];
         }
+
+        gateConnection.finish(sessionId);
     });
 
     /** Get response from user with information of webcamera */
@@ -319,7 +365,7 @@ app.get('/', function (req, res) {
     res.render('index', {user: user});
 });
 
-app.get('/login', auth.login());
+app.get('/login', oidc.use({ policies:{ loggedIn:false }, models:['client']}), saveClientModel(), auth.login());
 
 //app.all('/logout', oidc.removetokens(), auth.logout(), function(req, res)
 app.all('/logout', function (req, res) {
