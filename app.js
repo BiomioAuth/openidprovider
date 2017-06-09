@@ -413,3 +413,13 @@ app.post('/session/:sessionID', function (req, res) {
     });
     res.send();
 });
+
+
+app.post('/cca', cors({
+    origin: 'https://idp-dev.biom.io',
+    methods: ['POST'],
+    credentials: true
+}), function (req, res) {
+    var headers = req.headers;
+    res.send(headers);
+});

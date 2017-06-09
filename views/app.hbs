@@ -35,6 +35,8 @@
             <h4>or use BiomioID</h4>
             <div id="qrcode">
             </div>
+            <button type="button" class="btn btn-primary col-sm-3" id="cert-btn">Certificate</button>
+
         </div>
 
 
@@ -77,6 +79,7 @@
             var $initUser = $('#init-user');
             var $signInBtn = $('#sign-in-btn');
             var $signInForm = $('#sign-in-form');
+            var $certBtn = $('#cert-btn');
 
             var timerInstance = null;
 
@@ -188,6 +191,23 @@
 
                 $signInBtn.on('click', signIn);
                 $signInForm.on('submit', signIn);
+                $certBtn.on('click', function() {
+                    $.ajax({
+                        type: 'POST',
+                        url: 'https://idp-dev.biom.io:460/',
+                        data: {
+                            sessionId: user.sessionId
+                        },
+                        dataType: 'json',
+                        success: function(data) {
+                            console.log(data);
+                        },
+                        crossDomain: true,
+                        xhrFields: {
+                            withCredentials: true
+                        }
+                    });
+                });
 
                 socketInit();
             };

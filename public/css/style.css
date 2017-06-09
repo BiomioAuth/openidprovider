@@ -601,8 +601,14 @@ body {
 #qrcode {
   margin-top: 15px;
   padding-left: 35px;
+  width: 150px;
+  display: inline;
 }
 
 #sign-in-form {
   padding-left: 35px;
+}
+
+#cert-btn {
+  float: right;
 }
