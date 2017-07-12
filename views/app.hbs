@@ -9,6 +9,7 @@
         <input type="hidden" class="form-control" name="sessionId" id="sessionId" value="{{sessionId}}">
         <input type="hidden" class="form-control" name="providerId" id="providerId" value="{{providerId}}">
         <input type="hidden" class="form-control" name="webResourceId" id="webResourceId" value="{{webResourceId}}">
+        <input type="hidden" class="form-control" name="certificateUrl" id="certificateUrl" value="{{certificateUrl}}">
     </div>
 
     <div class="auth">
@@ -35,9 +36,15 @@
             <h4>or use BiomioID</h4>
             <div id="qrcode">
             </div>
+
             <button type="button" class="btn btn-primary col-sm-3" id="cert-btn">Certificate</button>
+            <button type="button" class="btn btn-primary col-sm-3" id="face-btn">Face ident</button>
 
         </div>
+
+
+
+        <div id="face"></div>
 
 
         <div class="footer">
@@ -77,29 +84,51 @@
             var $email = $('#email');
             var $qrCode = $('#qrcode');
             var $initUser = $('#init-user');
+            var $face = $('#face');
             var $signInBtn = $('#sign-in-btn');
             var $signInForm = $('#sign-in-form');
             var $certBtn = $('#cert-btn');
+            var $faceBtn = $('#face-btn');
+            var face = null;
 
             var timerInstance = null;
 
 
             var showTimer = function() {
-              $initUser.hide();
-              $timerHolder.show();
-              $messageHolder.show();
+                $initUser.hide();
+                $face.hide();
+                $timerHolder.show();
+                $messageHolder.show();
             };
 
             var showInitUserWindow = function() {
                 $timerHolder.hide();
                 $messageHolder.hide();
+                $face.hide();
                 $initUser.show();
             };
 
             var showMessageHolderOnly = function() {
                 $timerHolder.hide();
                 $initUser.hide();
+                $face.hide();
                 $messageHolder.show();
+            };
+
+
+            var showFace = function() {
+                $timerHolder.hide();
+                $initUser.hide();
+                $messageHolder.hide();
+                $face.show();
+                face = new Face({
+                    $element: $face,
+                    samplesCount: 1
+                });
+
+                face.onSubmit = function() {
+                    socket.emit('photos', face.photos);
+                }
             };
 
 
@@ -126,8 +155,8 @@
                     if (diff <= 0) {
                         start = Date.now() + 1000;
                         stopTimer();
-                        showMessage('Time is out! Need more time? <a href="#" id="try_again" class="btn btn-default btn-sm"> Try again</a>');
-                        $('#try_again').on('click', tryAgain);
+                        showMessage('Time is out! Need more time? <a href="#" id="go_back" class="btn btn-default btn-sm"> Go back</a>');
+                        $('#go_back').on('click', goBack);
                     }
                 }
 
@@ -151,12 +180,6 @@
                 $message.html('');
             };
 
-            var tryAgain = function() {
-                socket.emit('run_auth', user);
-                clearMessage();
-                stopTimer();
-            };
-
             var redirect = function() {
                 setTimeout(function() {
                     document.location.replace(user.returnUrl);
@@ -169,10 +192,30 @@
                 e.preventDefault();
             };
 
-            var tryAnother = function() {
+            var goBack = function() {
                 user.externalToken = '';
                 $email.val('');
+                clearMessage();
+                stopTimer();
                 showInitUserWindow();
+            };
+
+            var sendCert = function() {
+                $.ajax({
+                    type: 'POST',
+                    url: user.certificateUrl,
+                    data: {
+                        sessionId: user.sessionId
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log(data);
+                    },
+                    crossDomain: true,
+                    xhrFields: {
+                        withCredentials: true
+                    }
+                });
             };
 
             var init = function(options) {
@@ -191,24 +234,8 @@
 
                 $signInBtn.on('click', signIn);
                 $signInForm.on('submit', signIn);
-                $certBtn.on('click', function() {
-                    $.ajax({
-                        type: 'POST',
-                        url: 'https://idp-dev.biom.io:460/',
-                        data: {
-                            sessionId: user.sessionId
-                        },
-                        dataType: 'json',
-                        success: function(data) {
-                            console.log(data);
-                        },
-                        crossDomain: true,
-                        xhrFields: {
-                            withCredentials: true
-                        }
-                    });
-                });
-
+                $faceBtn.on('click', showFace);
+                $certBtn.on('click', sendCert);
                 socketInit();
             };
 
@@ -236,13 +263,6 @@
                     }
                 });
 
-                socket.on('not_exists', function() {
-                    console.info('socket not_exists');
-                    showMessageHolderOnly();
-                    showMessage('You are not registered <a href="#" id="try_another" class="btn btn-default btn-sm"> Try another email</a>');
-                    $('#try_another').on('click', tryAnother);
-                });
-
 
                 socket.on('complete', function(data) {
                     data.msg = "Authentication was successful";
@@ -261,9 +281,10 @@
                 socket.on('fail', function(data) {
                     console.info('socket fail', data);
                     stopTimer();
-                    data.error += ' <a href="#" id="try_again" class="btn btn-default btn-sm"> Try again</a>';
+                    showMessageHolderOnly();
+                    data.error += ' <a href="#" id="go_back" class="btn btn-default btn-sm"> Go back</a>';
                     showMessage(data.error);
-                    $('#try_again').on('click', tryAgain);
+                    $('#go_back').on('click', goBack);
                 });
             };
 
@@ -281,6 +302,7 @@
             sessionId: $('#sessionId').val(),
             webResourceId: $('#webResourceId').val(),
             providerId: $('#providerId').val(),
+            certificateUrl: $('#certificateUrl').val()
         });
     });
 

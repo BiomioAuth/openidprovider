@@ -18,7 +18,8 @@ var login = function(req, res, next) {
             webResourceId: queryParams.webresource_id,
             returnUrl: returnURL,
             sessionId: sessionId,
-            qrUrl: process.env.HOST + '/session/' + sessionId
+            qrUrl: process.env.HOST + '/session/' + sessionId,
+            certificateUrl: 'https://idp-dev.biom.io:460/' //hardcoded for now, should be taken from env
         });
     };
 };

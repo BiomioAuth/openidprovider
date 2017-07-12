@@ -24,9 +24,9 @@ var Face = function (params) {
 
   html.faceBoundFail = $("<div />", {class: "face-bound-fail"});
   html.faceBoundSuccess = $("<div />", {class: "face-bound-success"});
-  html.faceSamples = $("<div />", {class: "face-samples"})
+  html.faceSamples = $("<div />", {class: "face-samples", style: "visibility: hidden"})
       .append($("<div />", {class: "face-samples--progress"}))
-      .append($("<div />", {class: "face-samples--text"}))
+      .append($("<div />", {class: "face-samples--text"}));
 
   self.$element
     .append(html.video)
@@ -145,7 +145,7 @@ var Face = function (params) {
   function validateFace(ctx, rects, sc, max) {
     if (!rects.length) return;
     if (self.finish) return;
-    if (self.debug) drawFaces(ctx, rects, sc, max);
+    drawFaces(ctx, rects, sc, max);
 
     var boundarySq = 250*250;
     var width = rects[0].width * sc;

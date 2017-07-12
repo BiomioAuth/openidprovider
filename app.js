@@ -142,7 +142,7 @@ function runAuth(user, socket) {
     user.authenticated = false;
     socket.user = user;
 
-    gateConnection.rpc('process_auth', runAuthParams, function (message) {
+    gateConnection.rpc('auth_client_plugin:process_auth', runAuthParams, function (message) {
         console.info('RUN AUTH STATUS: ' + JSON.stringify(message));
 
         switch (message.msg.rpcStatus) {
@@ -175,10 +175,9 @@ function runAuth(user, socket) {
             case 'fail':
                 var err = message.msg.data;
                 if (err.code === 'NOT_REGISTERED') {
-                    socket.emit('not_exists');
-                } else {
-                    socket.emit('fail', err);
+                    err.error = 'You are not registered';
                 }
+                socket.emit('fail', err);
                 break;
             default:
                 throw Error('Unhandled RPC status: ', message.msg.rpcStatus);
@@ -199,7 +198,7 @@ var saveClientModel = function() {
 var saveClient = function(user, socket, cb) {
     clientModel.findOne({key: user.clientId}, function(err, searchResult) {
         if (!searchResult) {
-            gateConnection.rpc('get_web_resource_secret', {
+            gateConnection.rpc('auth_client_plugin:get_web_resource_secret', {
                 sessionId: user.sessionId,
                 webResourceId: user.webResourceId,
                 providerId: user.providerId,
@@ -238,8 +237,16 @@ io.on('connection', function (socket) {
         });
     });
 
-    socket.on('cancel', function (user) {
+    socket.on('photos', function (photos) {
+        var user = socketConnections[sessionId].user;
 
+        gateConnection.rpc('identify_client_plugin:process_auth', {
+            sessionId: sessionId,
+            resources: config.resources,
+            photos: photos
+        }, function(data) {
+            console.log("DDaata ", data);
+        });
     });
 
     socket.on('hello', function (sessId) {
@@ -267,7 +274,7 @@ io.on('connection', function (socket) {
                     resources: config.resources
                 };
 
-                gateConnection.rpc('cancel_auth', cancelAuthParams, function(){});
+                gateConnection.rpc('auth_client_plugin:cancel_auth', cancelAuthParams, function(){});
             }
 
             delete socketConnections[sessionId];
@@ -406,9 +413,15 @@ app.post('/session/:sessionID', function (req, res) {
         resources: config.resources
     };
 
-    gateConnection.rpc('get_user', getUserParams, function (result) {
+    gateConnection.rpc('app2user_plugin:get_user', getUserParams, function (result) {
         if (result && result.msg && socketConnections[sessionId]) {
-            socketConnections[sessionId].emit('run_auth', result.msg.data);
+            var sock = socketConnections[sessionId];
+            if (result.msg.rpcStatus === 'complete') {
+                sock.emit('run_auth', result.msg.data);
+            } else {
+                result.msg.data.error = 'App id not found';
+                sock.emit('fail', result.msg.data);
+            }
         }
     });
     res.send();
@@ -421,5 +434,24 @@ app.post('/cca', cors({
     credentials: true
 }), function (req, res) {
     var headers = req.headers;
-    res.send(headers);
+    var sessionId = req.body.sessionId;
+
+    var getUserParams = {
+        sessionId: sessionId,
+        userId: headers['x-ssl-client-fingerprint'],
+        resources: config.resources
+    };
+
+    gateConnection.rpc('crt2user_plugin:get_user', getUserParams, function(result) {
+        if (result && result.msg && socketConnections[sessionId]) {
+            var sock = socketConnections[sessionId];
+            if (result.msg.rpcStatus === 'complete') {
+                sock.emit('run_auth', result.msg.data);
+            } else {
+                result.msg.data.error = 'Certificate not found';
+                sock.emit('fail', result.msg.data);
+            }
+        }
+    });
+    res.send();
 });
