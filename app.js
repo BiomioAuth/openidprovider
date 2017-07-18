@@ -406,6 +406,7 @@ app.get('/client/register', client.registerAction());
 
 app.post('/session/:sessionID', function (req, res) {
     var sessionId = req.params.sessionID;
+    var sock = socketConnections[sessionId];
 
     var getUserParams = {
         sessionId: sessionId,
@@ -415,7 +416,6 @@ app.post('/session/:sessionID', function (req, res) {
 
     gateConnection.rpc('app2user_plugin:get_user', getUserParams, function (result) {
         if (result && result.msg && socketConnections[sessionId]) {
-            var sock = socketConnections[sessionId];
             if (result.msg.rpcStatus === 'complete') {
                 sock.emit('run_auth', result.msg.data);
             } else {
@@ -435,6 +435,7 @@ app.post('/cca', cors({
 }), function (req, res) {
     var headers = req.headers;
     var sessionId = req.body.sessionId;
+    var sock = socketConnections[sessionId];
 
     var getUserParams = {
         sessionId: sessionId,
@@ -444,7 +445,6 @@ app.post('/cca', cors({
 
     gateConnection.rpc('crt2user_plugin:get_user', getUserParams, function(result) {
         if (result && result.msg && socketConnections[sessionId]) {
-            var sock = socketConnections[sessionId];
             if (result.msg.rpcStatus === 'complete') {
                 sock.emit('run_auth', result.msg.data);
             } else {

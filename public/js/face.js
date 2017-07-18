@@ -243,6 +243,7 @@ var Face = function (params) {
    */
   function takePhoto() {
     var image = canvas.toDataURL();
+    image = image.substr(image.indexOf(',') + 1);
     self.photos.push(image);
     console.info('image: ', image);
   };
