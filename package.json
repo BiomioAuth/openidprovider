@@ -35,6 +35,6 @@
     "devDependencies": {
         "bower": "^1.5.3",
         "eslint": "^3.19.0",
-        "foreman": "^1.4.1"
+        "foreman": "^3.0.1"
     }
 }
